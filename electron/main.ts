@@ -1,6 +1,9 @@
 /// <reference path="./electron-env.d.ts" />
-const { app, BrowserWindow } = require('electron')
-const path = require('path')
+import { app, BrowserWindow } from 'electron'
+import * as path from 'path'
+import { ensureConfigFile } from './config'
+import { scheduleShutdowns } from './shutdown'
+import { setupIpcHandlers } from './ipc'
 
 // The built directory structure
 //
@@ -25,8 +28,8 @@ function createWindow() {
     height: 800,
     webPreferences: {
       contextIsolation: false,
-      nodeIntegration: true,
-    },
+      nodeIntegration: true
+    }
   })
 
   if (!win) return
@@ -40,7 +43,6 @@ function createWindow() {
 
   if (VITE_DEV_SERVER_URL && win) {
     win.loadURL(VITE_DEV_SERVER_URL)
-    win.webContents.openDevTools()
   } else if (win) {
     // Make sure dist directory exists
     win.loadFile(path.join(process.env.DIST || '', 'index.html'))
@@ -54,11 +56,24 @@ app.on('window-all-closed', () => {
   }
 })
 
-app.whenReady().then(createWindow)
+// Initialize app when ready
+app.whenReady().then(() => {
+  // Ensure config file exists
+  ensureConfigFile()
+
+  // Create the main window
+  createWindow()
+
+  // Set up IPC handlers
+  setupIpcHandlers()
+
+  // Schedule shutdowns on startup
+  scheduleShutdowns()
+})
 
 app.on('activate', () => {
   const allWindows = BrowserWindow.getAllWindows()
   if (allWindows.length === 0) {
     createWindow()
   }
-}) 
+})

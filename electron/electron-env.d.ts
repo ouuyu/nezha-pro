@@ -7,4 +7,4 @@ declare namespace NodeJS {
     DIST: string
     PUBLIC: string
   }
-} 
+}

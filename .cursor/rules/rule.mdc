@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+
+1. 该项目使用 Electron v20 + Vite + Vue3 + UnoCSS + Element-Plus 开发
+
+2. 组件设计:
+
+- 高内聚低耦合: 每个组件应有清晰单一的职责。
+
+- 可复用性: 优先考虑组件的可复用性，提供清晰的 props 和 emit 定义。
+
+3. 状态管理: 使用 Pinia 进行全局状态管理，模块化拆分 store。
+
+4. 路由管理: 使用 Vue Router 管理应用路由，采用懒加载优化性能。
+
+5. CSS 规范: 使用 UnoCSS 进行原子化 CSS 编写，避免样式冲突，提高开发效率。
+
+6. 编写简洁有效的 CSS，现代化的 UI/UX 布局和设计，总是使用 Element-Plus 组件库！

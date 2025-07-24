@@ -8,7 +8,9 @@
     "preview": "vite preview",
     "electron:dev": "vite",
     "electron:build": "vue-tsc -b && vite build && electron-builder",
-    "electron:preview": "electron-builder --dir && electron --no-sandbox dist-electron/main"
+    "electron:preview": "electron-builder --dir && electron --no-sandbox dist-electron/main",
+    "format": "prettier --write \"src/**/*.{js,ts,vue,css}\" \"electron/**/*.{js,ts}\"",
+    "format:check": "prettier --check \"src/**/*.{js,ts,vue,css}\" \"electron/**/*.{js,ts}\""
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
@@ -21,9 +23,11 @@
     "@unocss/preset-icons": "^66.3.3",
     "@unocss/preset-uno": "^66.3.3",
     "@vitejs/plugin-vue": "^6.0.0",
+    "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/tsconfig": "^0.7.0",
     "electron": "^20.3.12",
     "electron-builder": "^24.9.1",
+    "prettier": "^3.6.2",
     "typescript": "~5.8.3",
     "unocss": "^66.3.3",
     "vite": "^7.0.4",
