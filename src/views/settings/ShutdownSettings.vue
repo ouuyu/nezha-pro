@@ -154,16 +154,21 @@
     return displayOrder
       .filter(dayValue => daySet.has(dayValue))
       .map(dayValue => dayMap.get(dayValue))
-      .join('、')
+      .join(', ')
   }
 
   const addShutdownTime = () => {
     const newIndex = shutdownTimes.value.length
     shutdownTimes.value.push({
-      time: '23:00:00',
+      time: new Date().toLocaleTimeString('zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
       weekdays: [1, 2, 3, 4, 5],
       active: true
     })
+    saveConfig()
     startEditing(newIndex)
   }
 

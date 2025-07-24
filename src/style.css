@@ -4,38 +4,27 @@
   box-sizing: border-box;
 }
 
+:root {
+  --scrollbar-width: 8px;
+  --scrollbar-track-color: transparent;
+  --scrollbar-thumb-color: rgba(64, 158, 255, 0.3);
+  --scrollbar-thumb-hover-color: rgba(102, 177, 255, 0.9);
+  --scrollbar-border-radius: 4px;
+}
+
 html,
 body {
   height: 100%;
   width: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: overlay;
 }
 
 #app {
   width: 100%;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
+  min-height: 100vh;
   text-align: center;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-
-:root {
-  --scrollbar-width: 8px;
-  --scrollbar-border-radius: 4px;
+  overflow-y: overlay;
 }
 
 ::-webkit-scrollbar {
@@ -45,26 +34,38 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: var(--scrollbar-border-radius);
+  background: var(--scrollbar-track-color);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(64, 158, 255, 0.1);
+  background-color: var(--scrollbar-thumb-color);
   border-radius: var(--scrollbar-border-radius);
-  border: 2px solid transparent; 
   background-clip: padding-box;
+  border: 2px solid transparent;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(102, 177, 255, 0.9);
+  background-color: var(--scrollbar-thumb-hover-color);
 }
 
-html {
+* {
   scrollbar-width: thin;
-  scrollbar-color: rgba(64, 158, 255, 0.7) transparent;
+  scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
 }
 
-.scrollable-content {
-  overflow: auto;
+.el-scrollbar__wrap,
+.el-scrollbar__view,
+.scrollable-content,
+.el-table__body-wrapper,
+.el-select-dropdown__wrap,
+.el-cascader-menu__wrap,
+.el-dialog__body {
+  overflow-y: overlay !important;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
 }

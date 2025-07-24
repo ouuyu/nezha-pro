@@ -5,21 +5,10 @@ import { ensureConfigFile } from './config'
 import { scheduleShutdowns } from './shutdown'
 import { setupIpcHandlers } from './ipc'
 
-// The built directory structure
-//
-// ├─┬ dist-electron
-// │ ├─┬ main
-// │ │ └── index.js
-// │ └─┬ preload
-// │   └── index.js
-// ├─┬ dist
-// │ └── index.html
-
 process.env.DIST = path.join(__dirname, '../dist')
 process.env.PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 
 let win: Electron.BrowserWindow | null = null
-// 🚧 Use ['ENV_NAME'] avoid vite:define plugin
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
 function createWindow() {
@@ -33,13 +22,6 @@ function createWindow() {
   })
 
   if (!win) return
-
-  // Test active push message to Renderer-process
-  win.webContents.on('did-finish-load', () => {
-    if (win) {
-      win.webContents.send('main-process-message', new Date().toLocaleString())
-    }
-  })
 
   if (VITE_DEV_SERVER_URL && win) {
     win.loadURL(VITE_DEV_SERVER_URL)
@@ -56,18 +38,12 @@ app.on('window-all-closed', () => {
   }
 })
 
-// Initialize app when ready
 app.whenReady().then(() => {
-  // Ensure config file exists
   ensureConfigFile()
 
-  // Create the main window
   createWindow()
-
-  // Set up IPC handlers
   setupIpcHandlers()
 
-  // Schedule shutdowns on startup
   scheduleShutdowns()
 })
 
