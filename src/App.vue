@@ -57,7 +57,7 @@
 <script setup>
   import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import { HomeFilled, Clock, Expand, Fold } from '@element-plus/icons-vue'
+  import { HomeFilled, Clock, Expand, Fold, Document } from '@element-plus/icons-vue'
 
   const route = useRoute()
   const router = useRouter()
@@ -69,6 +69,11 @@
       title: '仪表盘',
       path: '/',
       icon: HomeFilled
+    },
+    {
+      title: '知识库',
+      path: '/knowledge-base',
+      icon: Document
     },
     {
       title: '定时关机',
