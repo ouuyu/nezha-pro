@@ -195,6 +195,7 @@ export async function syncCloudKnowledgeSource(sourceConfig: {
 export async function syncAllCloudSources(): Promise<{
   success: boolean
   results: Array<{ sourceId: string, sourceName: string, result: SyncResult }>
+  totalCount: number
 }> {
   const config = getConfig()
   const cloudSources = config.cloudKnowledgeSources || []
@@ -204,11 +205,13 @@ export async function syncAllCloudSources(): Promise<{
     return {
       success: false,
       results: [],
+      totalCount: 0,
     }
   }
 
   const results: Array<{ sourceId: string, sourceName: string, result: SyncResult }> = []
   let overallSuccess = false
+  let totalCount = 0
 
   for (const source of enabledSources) {
     const result = await syncCloudKnowledgeSource({
@@ -223,6 +226,8 @@ export async function syncAllCloudSources(): Promise<{
       result,
     })
 
+    totalCount += result.itemCount || 0
+
     if (result.success) {
       overallSuccess = true
     }
@@ -231,5 +236,6 @@ export async function syncAllCloudSources(): Promise<{
   return {
     success: overallSuccess,
     results,
+    totalCount,
   }
 }

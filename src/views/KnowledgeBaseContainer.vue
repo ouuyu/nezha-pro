@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import KnowledgeManagement from '../components/KnowledgeManagement.vue'
+import { ref } from 'vue'
 import CloudSyncSettings from '../components/CloudSyncSettings.vue'
+import KnowledgeManagement from '../components/KnowledgeManagement.vue'
 
 const activeTab = ref('knowledge')
 const syncLoading = ref(false)
@@ -13,22 +13,22 @@ async function syncFromCloud() {
   try {
     syncLoading.value = true
     ElMessage.info('开始同步云端数据...')
-    
+
     const result = await window.require('electron').ipcRenderer.invoke('sync-all-cloud-knowledge')
-    
+
     if (result.success) {
       lastSyncTime.value = new Date().toLocaleString()
       ElMessage.success(`同步成功！共同步 ${result.totalCount || 0} 条数据`)
-      
-      // 刷新知识库数据
-      window.location.reload()
-    } else {
+    }
+    else {
       ElMessage.error(`同步失败：${result.message}`)
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('同步失败:', error)
     ElMessage.error('同步失败，请检查网络连接')
-  } finally {
+  }
+  finally {
     syncLoading.value = false
   }
 }

@@ -130,8 +130,8 @@ function deleteCloudSource(index: number) {
   ElMessage.success('删除成功')
 }
 
-function toggleSourceEnabled(index: number) {
-  cloudSources.value[index].enabled = !cloudSources.value[index].enabled
+function toggleSourceEnabled(_index: number) {
+  // el-switch 已经自动更新了 enabled 状态，这里只需要保存配置
   updateConfig()
 }
 
