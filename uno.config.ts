@@ -1,5 +1,4 @@
-import { defineConfig } from 'unocss'
-import { presetUno, presetAttributify, presetIcons } from 'unocss'
+import { defineConfig, presetAttributify, presetIcons, presetUno } from 'unocss'
 
 export default defineConfig({
   presets: [
@@ -17,4 +16,4 @@ export default defineConfig({
     // Example shortcut
     // 'btn': 'py-2 px-4 font-semibold rounded-lg shadow-md'
   },
-}) 
+})

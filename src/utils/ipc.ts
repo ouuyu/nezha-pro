@@ -38,7 +38,6 @@ class IpcManager {
       }
       catch (error) {
         console.error('Failed to get ipcRenderer:', error)
-        throw new Error('无法获取 Electron IPC 通信接口')
       }
     }
     return this.ipcRenderer

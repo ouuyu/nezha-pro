@@ -1,15 +1,16 @@
+import * as path from 'node:path'
+import process from 'node:process'
 /// <reference path="./electron-env.d.ts" />
 import { app, BrowserWindow } from 'electron'
-import * as path from 'path'
 import { ensureConfigFile } from './config'
-import { scheduleShutdowns } from './shutdown'
 import { setupIpcHandlers } from './ipc'
+import { scheduleShutdowns } from './shutdown'
 
 process.env.DIST = path.join(__dirname, '../dist')
 process.env.PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 
 let win: Electron.BrowserWindow | null = null
-const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
+const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL
 
 function createWindow() {
   win = new BrowserWindow({
@@ -17,15 +18,17 @@ function createWindow() {
     height: 800,
     webPreferences: {
       contextIsolation: false,
-      nodeIntegration: true
-    }
+      nodeIntegration: true,
+    },
   })
 
-  if (!win) return
+  if (!win)
+    return
 
   if (VITE_DEV_SERVER_URL && win) {
     win.loadURL(VITE_DEV_SERVER_URL)
-  } else if (win) {
+  }
+  else if (win) {
     // Make sure dist directory exists
     win.loadFile(path.join(process.env.DIST || '', 'index.html'))
   }

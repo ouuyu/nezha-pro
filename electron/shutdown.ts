@@ -1,4 +1,3 @@
-import { exec } from 'child_process'
 import { getConfig } from './config'
 
 // Store shutdown timers
@@ -11,18 +10,20 @@ export function scheduleShutdowns() {
   shutdownTimers = []
 
   const config = getConfig()
-  if (!config.shutdownTimes || !config.shutdownTimes.length) return
+  if (!config.shutdownTimes || !config.shutdownTimes.length)
+    return
 
   const now = new Date()
 
   config.shutdownTimes.forEach((shutdownTime: any) => {
-    if (!shutdownTime.time || !shutdownTime.weekdays || !shutdownTime.weekdays.length) return
+    if (!shutdownTime.time || !shutdownTime.weekdays || !shutdownTime.weekdays.length)
+      return
 
     const [hours, minutes, seconds] = shutdownTime.time.split(':').map(Number)
 
     // Schedule for each selected weekday
     shutdownTime.weekdays.forEach((weekday: number) => {
-      let targetDate = new Date()
+      const targetDate = new Date()
 
       // Set time
       targetDate.setHours(hours, minutes, seconds, 0)
@@ -33,7 +34,8 @@ export function scheduleShutdowns() {
 
       if (daysToAdd < 0) {
         daysToAdd += 7
-      } else if (daysToAdd === 0 && now > targetDate) {
+      }
+      else if (daysToAdd === 0 && now > targetDate) {
         daysToAdd = 7
       }
 
@@ -54,28 +56,4 @@ export function scheduleShutdowns() {
 }
 
 // Execute the shutdown command
-export function executeShutdown() {
-  // Execute shutdown command based on platform
-  let command = ''
-
-  switch (process.platform) {
-    case 'win32':
-      command = 'shutdown /s /f /t 60'
-      break
-    case 'darwin':
-      command = 'sudo shutdown -h +1'
-      break
-    case 'linux':
-      command = 'sudo shutdown -h +1'
-      break
-    default:
-      console.error('Unsupported platform for shutdown')
-      return
-  }
-
-  exec(command, error => {
-    if (error) {
-      console.error('Error executing shutdown:', error)
-    }
-  })
-}
+export function executeShutdown() {}

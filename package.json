@@ -1,7 +1,8 @@
 {
   "name": "nezha",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build && electron-builder",
@@ -39,6 +40,5 @@
     "vite-plugin-electron-renderer": "^0.14.6",
     "vue-router": "^4.5.1",
     "vue-tsc": "^2.2.12"
-  },
-  "main": "dist-electron/main.js"
+  }
 }
