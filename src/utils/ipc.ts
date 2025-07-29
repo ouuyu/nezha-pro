@@ -129,6 +129,14 @@ class IpcManager {
       ...options,
     })
   }
+
+  async getDeveloperInfo<T = any>(options: IpcOptions = {}): Promise<IpcResult<T>> {
+    return this.invoke<T>('get-developer-info', undefined, {
+      showErrorMessage: true,
+      errorMessage: '获取开发者信息失败',
+      ...options,
+    })
+  }
 }
 
 const ipcManager = new IpcManager()
@@ -139,3 +147,4 @@ export default ipcManager
 export const ipcInvoke = ipcManager.invoke.bind(ipcManager)
 export const getConfig = ipcManager.getConfig.bind(ipcManager)
 export const saveConfig = ipcManager.saveConfig.bind(ipcManager)
+export const getDeveloperInfo = ipcManager.getDeveloperInfo.bind(ipcManager)

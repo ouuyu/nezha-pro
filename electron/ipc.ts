@@ -1,5 +1,6 @@
-import { ipcMain } from 'electron'
-import { getConfig, saveConfig } from './config'
+import process from 'node:process'
+import { app, ipcMain } from 'electron'
+import { getConfig, getConfigPath, saveConfig } from './config'
 import { scheduleShutdowns } from './shutdown'
 
 // Set up IPC handlers
@@ -16,5 +17,21 @@ export function setupIpcHandlers() {
       scheduleShutdowns()
     }
     return result
+  })
+
+  // Handler for getting developer information
+  ipcMain.handle('get-developer-info', () => {
+    return {
+      electronVersion: process.versions.electron,
+      nodeVersion: process.versions.node,
+      chromeVersion: process.versions.chrome,
+      platform: process.platform,
+      arch: process.arch,
+      appVersion: app.getVersion(),
+      appName: app.getName(),
+      configPath: getConfigPath(),
+      userDataPath: app.getPath('userData'),
+      appPath: app.getAppPath(),
+    }
   })
 }

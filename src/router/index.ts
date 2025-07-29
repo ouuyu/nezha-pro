@@ -17,6 +17,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'KnowledgeBase',
     component: () => import('../views/KnowledgeBase.vue'),
   },
+  {
+    path: '/developer-mode',
+    name: 'DeveloperMode',
+    component: () => import('../views/DeveloperMode.vue'),
+  },
 ]
 
 const router = createRouter({

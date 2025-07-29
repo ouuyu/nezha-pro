@@ -116,7 +116,7 @@ onMounted(loadKnowledgeBase)
 </script>
 
 <template>
-  <el-card class="rounded-lg">
+  <el-card class="rounded-lg" shadow="hover">
     <div class="mb-4 flex items-center justify-between">
       <h2 class="text-lg font-bold">
         知识库管理
@@ -129,7 +129,6 @@ onMounted(loadKnowledgeBase)
       <el-table-column prop="author" label="作者" width="120" show-overflow-tooltip />
       <el-table-column prop="source" label="出处" width="180" show-overflow-tooltip />
       <el-table-column prop="content" label="内容" show-overflow-tooltip />
-      <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column label="操作" width="160" fixed="right">
         <template #default="scope">
           <el-button size="small" @click="editKnowledge(scope.$index)">

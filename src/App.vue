@@ -1,3 +1,64 @@
+<script setup>
+import { Clock, Document, HomeFilled, Tools } from '@element-plus/icons-vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
+const isCollapse = ref(false)
+const isMobileScreen = ref(false)
+
+const menuItems = [
+  {
+    title: '仪表盘',
+    path: '/',
+    icon: HomeFilled,
+  },
+  {
+    title: '知识库',
+    path: '/knowledge-base',
+    icon: Document,
+  },
+  {
+    title: '定时关机',
+    path: '/shutdown-settings',
+    icon: Clock,
+  },
+  {
+    title: '开发者模式',
+    path: '/developer-mode',
+    icon: Tools,
+  },
+]
+
+const activeIndex = computed(() => route.path)
+
+function toggleCollapse() {
+  isCollapse.value = !isCollapse.value
+}
+
+function handleSelect(index) {
+  router.push(index)
+  if (isMobileScreen.value) {
+    isCollapse.value = true
+  }
+}
+
+function checkScreenSize() {
+  isMobileScreen.value = window.innerWidth < 768
+  isCollapse.value = isMobileScreen.value
+}
+
+onMounted(() => {
+  checkScreenSize()
+  window.addEventListener('resize', checkScreenSize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize)
+})
+</script>
+
 <template>
   <el-container class="min-h-screen">
     <el-aside
@@ -35,7 +96,9 @@
           <el-icon>
             <component :is="item.icon" />
           </el-icon>
-          <template #title>{{ item.title }}</template>
+          <template #title>
+            {{ item.title }}
+          </template>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -43,72 +106,12 @@
     <el-container :style="{ marginLeft: isCollapse ? '64px' : '240px' }">
       <el-main class="p-4">
         <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <div class="w-full h-full">
-              <component :is="Component" />
-            </div>
-          </transition>
+          <component :is="Component" />
         </router-view>
       </el-main>
     </el-container>
   </el-container>
 </template>
-
-<script setup>
-  import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
-  import { HomeFilled, Clock, Expand, Fold, Document } from '@element-plus/icons-vue'
-
-  const route = useRoute()
-  const router = useRouter()
-  const isCollapse = ref(false)
-  const isMobileScreen = ref(false)
-
-  const menuItems = [
-    {
-      title: '仪表盘',
-      path: '/',
-      icon: HomeFilled
-    },
-    {
-      title: '知识库',
-      path: '/knowledge-base',
-      icon: Document
-    },
-    {
-      title: '定时关机',
-      path: '/shutdown-settings',
-      icon: Clock
-    }
-  ]
-
-  const activeIndex = computed(() => route.path)
-
-  const toggleCollapse = () => {
-    isCollapse.value = !isCollapse.value
-  }
-
-  const handleSelect = index => {
-    router.push(index)
-    if (isMobileScreen.value) {
-      isCollapse.value = true
-    }
-  }
-
-  const checkScreenSize = () => {
-    isMobileScreen.value = window.innerWidth < 768
-    isCollapse.value = isMobileScreen.value
-  }
-
-  onMounted(() => {
-    checkScreenSize()
-    window.addEventListener('resize', checkScreenSize)
-  })
-
-  onUnmounted(() => {
-    window.removeEventListener('resize', checkScreenSize)
-  })
-</script>
 
 <style scoped>
   .fade-enter-active,

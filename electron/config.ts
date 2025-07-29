@@ -61,3 +61,8 @@ export function saveConfig(config: any) {
     return false
   }
 }
+
+// Get configuration file path
+export function getConfigPath() {
+  return configPath
+}
