@@ -26,6 +26,7 @@ export interface IpcOptions {
   successMessage?: string
   errorMessage?: string
   silent?: boolean
+  skipAutoSyncRestart?: boolean
 }
 
 class IpcManager {
@@ -120,7 +121,7 @@ class IpcManager {
     config: T,
     options: IpcOptions = {},
   ): Promise<IpcResult<boolean>> {
-    return this.invoke<boolean>('save-config', config, {
+    return this.invoke<boolean>('save-config', { config, options }, {
       showSuccessMessage: true,
       showErrorMessage: true,
       successMessage: '设置已保存',

@@ -229,7 +229,7 @@ onUnmounted(() => {
                 <Clock />
               </el-icon>
               <span
-                class="text-lg font-mono"
+                class="text-lg"
                 :class="{ 'text-gray-400 line-through': !item.active }"
               >
                 {{ item.time }}

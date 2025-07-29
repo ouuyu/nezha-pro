@@ -10,6 +10,9 @@ const configPath = path.join(userDataPath, 'config.json')
 const defaultConfig = {
   shutdownTimes: [],
   knowledgeBase: [],
+  cloudKnowledgeSources: [],
+  autoSyncEnabled: false,
+  syncInterval: 60,
 }
 
 // Ensure config file exists
@@ -27,6 +30,18 @@ export function ensureConfigFile() {
       }
       if (!('knowledgeBase' in config)) {
         config.knowledgeBase = []
+        changed = true
+      }
+      if (!('cloudKnowledgeSources' in config)) {
+        config.cloudKnowledgeSources = []
+        changed = true
+      }
+      if (!('autoSyncEnabled' in config)) {
+        config.autoSyncEnabled = false
+        changed = true
+      }
+      if (!('syncInterval' in config)) {
+        config.syncInterval = 60
         changed = true
       }
       if (changed) {

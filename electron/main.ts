@@ -2,6 +2,7 @@ import * as path from 'node:path'
 import process from 'node:process'
 /// <reference path="./electron-env.d.ts" />
 import { app, BrowserWindow } from 'electron'
+import { startAutoSync, stopAutoSync } from './autoSync'
 import { ensureConfigFile } from './config'
 import { setupIpcHandlers } from './ipc'
 import { scheduleShutdowns } from './shutdown'
@@ -36,6 +37,7 @@ function createWindow() {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    stopAutoSync() // 停止自动同步
     app.quit()
     win = null
   }
@@ -48,6 +50,7 @@ app.whenReady().then(() => {
   setupIpcHandlers()
 
   scheduleShutdowns()
+  startAutoSync() // 启动自动同步
 })
 
 app.on('activate', () => {
