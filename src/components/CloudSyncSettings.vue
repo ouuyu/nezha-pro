@@ -20,18 +20,12 @@ const sourceRules = {
   ],
 }
 
-// 本地数据，独立管理
 const cloudSources = ref<CloudKnowledgeSource[]>([])
 const autoSyncEnabled = ref(false)
 const syncInterval = ref(60)
 
-// 加载配置
 async function loadConfig() {
-  const result = await getConfig({
-    showErrorMessage: true,
-    errorMessage: '加载配置失败',
-    silent: false,
-  })
+  const result = await getConfig({ showErrorMessage: true, errorMessage: '加载配置失败', silent: false })
   if (result.success && result.data) {
     cloudSources.value = result.data.cloudKnowledgeSources || []
     autoSyncEnabled.value = result.data.autoSyncEnabled || false
@@ -39,30 +33,23 @@ async function loadConfig() {
   }
 }
 
-// 更新配置
 async function updateConfig() {
   const configResult = await getConfig({ silent: true })
-  if (!configResult.success || !configResult.data) {
+  if (!configResult.success || !configResult.data)
     return
-  }
+
   const config = configResult.data
   config.cloudKnowledgeSources = cloudSources.value
   config.autoSyncEnabled = autoSyncEnabled.value
   config.syncInterval = syncInterval.value
-  await saveConfig(config, {
-    showSuccessMessage: false,
-    showErrorMessage: true,
-    errorMessage: '保存失败',
-  })
+  await saveConfig(config, { showSuccessMessage: false, showErrorMessage: true, errorMessage: '保存失败' })
 }
 
 function openAddSourceDialog() {
   editSourceIndex.value = null
   sourceForm.value = { name: '', url: '', enabled: true }
   sourceDialogVisible.value = true
-  setTimeout(() => {
-    sourceFormRef.value?.clearValidate()
-  }, 100)
+  setTimeout(() => sourceFormRef.value?.clearValidate(), 100)
 }
 
 function editCloudSource(index: number) {
@@ -70,28 +57,17 @@ function editCloudSource(index: number) {
   editSourceIndex.value = index
   sourceForm.value = { ...source }
   sourceDialogVisible.value = true
-  setTimeout(() => {
-    sourceFormRef.value?.clearValidate()
-  }, 100)
+  setTimeout(() => sourceFormRef.value?.clearValidate(), 100)
 }
 
 function saveCloudSource() {
   sourceFormRef.value.validate(async (valid: boolean) => {
     if (valid) {
       if (editSourceIndex.value === null) {
-        // 新增数据源
-        const newSource = {
-          ...sourceForm.value,
-          id: Date.now().toString(),
-        }
-        cloudSources.value.push(newSource)
+        cloudSources.value.push({ ...sourceForm.value, id: Date.now().toString() })
       }
       else {
-        // 编辑数据源
-        cloudSources.value[editSourceIndex.value] = {
-          ...cloudSources.value[editSourceIndex.value],
-          ...sourceForm.value,
-        }
+        cloudSources.value[editSourceIndex.value] = { ...cloudSources.value[editSourceIndex.value], ...sourceForm.value }
       }
       sourceDialogVisible.value = false
       ElMessage.success(editSourceIndex.value === null ? '新增成功' : '更新成功')
@@ -104,15 +80,11 @@ function saveCloudSource() {
 }
 
 function confirmDeleteSource(index: number) {
-  ElMessageBox.confirm(
-    '确定要删除这个数据源吗？',
-    '删除确认',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    },
-  ).then(() => {
+  ElMessageBox.confirm('确定要删除这个数据源吗？', '删除确认', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
     deleteCloudSource(index)
   }).catch(() => {})
 }
@@ -154,26 +126,41 @@ async function testConnection(source: CloudKnowledgeSource) {
   }
 }
 
+function getDomainFromUrl(url: string): string {
+  try {
+    const parsedUrl = new URL(url)
+    return parsedUrl.hostname
+  }
+  catch {
+    return ''
+  }
+}
+
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text).then(() => {
+    ElMessage.success('URL已复制')
+  }).catch(() => {
+    ElMessage.error('复制失败')
+  })
+}
+
 onMounted(loadConfig)
 </script>
 
 <template>
-  <div class="h-full flex flex-col gap-6">
-    <div class="flex-shrink-0">
-      <div class="space-y-4">
-        <div class="flex items-center space-x-4">
-          <el-switch
-            v-model="autoSyncEnabled"
-            @change="updateAutoSyncSettings"
-          />
+  <div class="h-full flex flex-col">
+    <div class="flex">
+      <div class="flex items-center gap-x-4">
+        <div class="flex items-center gap-2">
+          <el-switch v-model="autoSyncEnabled" @change="updateAutoSyncSettings" />
           <span>启用自动同步</span>
         </div>
-        <div v-if="autoSyncEnabled" class="flex items-center space-x-4">
-          <span>同步间隔：</span>
+        <div v-if="autoSyncEnabled" class="flex items-center space-x-1">
+          <span>间隔：</span>
           <el-input-number
             v-model="syncInterval"
-            :min="1"
-            :max="1440"
+            size="small" :min="1" :max="60" controls-position="right"
+            class="w-18"
             @change="updateAutoSyncSettings"
           />
           <span>分钟</span>
@@ -181,7 +168,7 @@ onMounted(loadConfig)
       </div>
     </div>
 
-    <div class="min-h-0 flex flex-1 flex-col">
+    <div class="mt-4 min-h-0 flex flex-1 flex-col">
       <div class="mb-4 flex items-center justify-between">
         <h3 class="text-lg font-bold">
           云端数据源
@@ -193,7 +180,7 @@ onMounted(loadConfig)
 
       <div class="min-h-[300px] flex-1">
         <el-table :data="cloudSources" style="width: 100%" empty-text="暂无数据源" height="100%">
-          <el-table-column prop="name" label="名称" width="180" show-overflow-tooltip>
+          <el-table-column prop="name" label="名称" show-overflow-tooltip>
             <template #default="scope">
               <div class="flex items-center gap-2">
                 <span>{{ scope.row.name }}</span>
@@ -203,13 +190,18 @@ onMounted(loadConfig)
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="url" label="URL" show-overflow-tooltip />
+          <el-table-column label="URL" show-overflow-tooltip>
+            <template #default="scope">
+              <el-tooltip :content="scope.row.url" placement="top">
+                <el-tag type="info" effect="plain" style="cursor: pointer;" @click="copyToClipboard(scope.row.url)">
+                  {{ getDomainFromUrl(scope.row.url) }}
+                </el-tag>
+              </el-tooltip>
+            </template>
+          </el-table-column>
           <el-table-column prop="enabled" label="状态" width="80" align="center">
             <template #default="scope">
-              <el-switch
-                v-model="scope.row.enabled"
-                @change="toggleSourceEnabled(scope.$index)"
-              />
+              <el-switch v-model="scope.row.enabled" @change="toggleSourceEnabled(scope.$index)" />
             </template>
           </el-table-column>
           <el-table-column prop="lastSyncTime" label="最后同步" width="160" show-overflow-tooltip />
@@ -218,19 +210,10 @@ onMounted(loadConfig)
               <el-button size="small" @click="testConnection(scope.row)">
                 测试
               </el-button>
-              <el-button
-                size="small"
-                :disabled="scope.row.isBuiltIn"
-                @click="editCloudSource(scope.$index)"
-              >
+              <el-button size="small" :disabled="scope.row.isBuiltIn" @click="editCloudSource(scope.$index)">
                 编辑
               </el-button>
-              <el-button
-                size="small"
-                type="danger"
-                :disabled="scope.row.isBuiltIn"
-                @click="confirmDeleteSource(scope.$index)"
-              >
+              <el-button size="small" type="danger" :disabled="scope.row.isBuiltIn" @click="confirmDeleteSource(scope.$index)">
                 删除
               </el-button>
             </template>
@@ -239,11 +222,7 @@ onMounted(loadConfig)
       </div>
     </div>
 
-    <el-dialog
-      v-model="sourceDialogVisible"
-      :title="editSourceIndex === null ? '新增数据源' : '编辑数据源'"
-      width="600px"
-    >
+    <el-dialog v-model="sourceDialogVisible" :title="editSourceIndex === null ? '新增数据源' : '编辑数据源'" width="600px">
       <el-form ref="sourceFormRef" :model="sourceForm" :rules="sourceRules" label-width="80px">
         <el-form-item label="名称" prop="name">
           <el-input v-model="sourceForm.name" placeholder="数据源名称" />
