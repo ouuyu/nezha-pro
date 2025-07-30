@@ -123,6 +123,24 @@ class IpcManager {
       ...options,
     })
   }
+
+  async getRawConfig(options: IpcOptions = {}): Promise<IpcResult<any>> {
+    return this.invoke('get-raw-config', undefined, {
+      showErrorMessage: true,
+      errorMessage: '读取配置文件失败',
+      ...options,
+    })
+  }
+
+  async saveRawConfig(content: string, options: IpcOptions = {}): Promise<IpcResult<any>> {
+    return this.invoke('save-raw-config', content, {
+      showSuccessMessage: true,
+      showErrorMessage: true,
+      successMessage: '配置文件保存成功',
+      errorMessage: '保存配置文件失败',
+      ...options,
+    })
+  }
 }
 
 const ipcManager = new IpcManager()
@@ -134,3 +152,5 @@ export const ipcInvoke = ipcManager.invoke.bind(ipcManager)
 export const getConfig = ipcManager.getConfig.bind(ipcManager)
 export const saveConfig = ipcManager.saveConfig.bind(ipcManager)
 export const getDeveloperInfo = ipcManager.getDeveloperInfo.bind(ipcManager)
+export const getRawConfig = ipcManager.getRawConfig.bind(ipcManager)
+export const saveRawConfig = ipcManager.saveRawConfig.bind(ipcManager)

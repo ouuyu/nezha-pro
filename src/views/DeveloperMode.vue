@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import {
+  Edit,
   FolderOpened,
   InfoFilled,
   Refresh,
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
-import { getDeveloperInfo } from '../utils/ipc'
+import MonacoEditor from '../components/MonacoEditor.vue'
+import { getDeveloperInfo, getRawConfig, saveRawConfig } from '../utils/ipc'
 
 const loading = ref(false)
 const developerInfo = ref<any>({})
+
+// 配置文件编辑相关
+const configEditorVisible = ref(false)
+const configContent = ref('')
+const configLoading = ref(false)
+const configSaving = ref(false)
+const editorRef = ref<InstanceType<typeof MonacoEditor>>()
 
 const infoItems = computed(() => [
   { label: '应用版本', key: 'appVersion' },
@@ -71,6 +80,98 @@ async function loadDeveloperInfo() {
   }
 }
 
+// 打开配置文件编辑器
+async function openConfigEditor() {
+  configLoading.value = true
+  configEditorVisible.value = true
+
+  try {
+    const result = await getRawConfig({
+      showErrorMessage: true,
+      errorMessage: '读取配置文件失败',
+      silent: false,
+    })
+
+    if (result.success && result.data) {
+      configContent.value = result.data.content || ''
+    }
+    else {
+      configContent.value = ''
+      ElMessage.error('无法读取配置文件')
+    }
+  }
+  catch (error) {
+    console.error('读取配置文件失败:', error)
+    ElMessage.error('读取配置文件失败')
+  }
+  finally {
+    configLoading.value = false
+  }
+}
+
+// 保存配置文件
+async function saveConfigFile() {
+  if (!editorRef.value) {
+    ElMessage.error('编辑器未初始化')
+    return
+  }
+
+  // 验证JSON格式
+  const validation = editorRef.value.validateJson()
+  if (!validation.isValid) {
+    ElMessage.error(`JSON格式错误: ${validation.error}`)
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      '确定要保存配置文件吗？这将覆盖当前的配置文件。',
+      '确认保存',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      },
+    )
+
+    configSaving.value = true
+    const content = editorRef.value.getValue() || ''
+
+    const result = await saveRawConfig(content, {
+      showSuccessMessage: true,
+      showErrorMessage: true,
+      successMessage: '配置文件保存成功',
+      errorMessage: '保存配置文件失败',
+      silent: false,
+    })
+
+    if (result.success) {
+      configEditorVisible.value = false
+    }
+  }
+  catch (error) {
+    if (error !== 'cancel') {
+      console.error('保存配置文件失败:', error)
+    }
+  }
+  finally {
+    configSaving.value = false
+  }
+}
+
+// 格式化JSON
+function formatConfigJson() {
+  if (editorRef.value) {
+    editorRef.value.formatDocument()
+  }
+}
+
+// 关闭编辑器
+function closeConfigEditor() {
+  configEditorVisible.value = false
+  configContent.value = ''
+}
+
 onMounted(() => {
   loadDeveloperInfo()
 })
@@ -82,9 +183,6 @@ onMounted(() => {
       <h2 class="text-lg font-bold">
         开发者模式
       </h2>
-      <p class="mt-2 text-sm text-gray-600">
-        查看应用程序的技术信息和配置详情
-      </p>
     </div>
 
     <el-card shadow="hover" class="mb-4 rounded-lg">
@@ -137,6 +235,12 @@ onMounted(() => {
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
+    <el-button type="primary" @click="openConfigEditor">
+      <el-icon class="mr-1">
+        <Edit />
+      </el-icon>
+      编辑配置文件
+    </el-button>
 
     <div class="mt-4 text-center">
       <el-button type="primary" text :loading="loading" @click="loadDeveloperInfo">
@@ -147,10 +251,63 @@ onMounted(() => {
       </el-button>
     </div>
   </div>
+
+  <el-dialog
+    v-model="configEditorVisible"
+    title="配置文件编辑器"
+    :close-on-click-modal="false"
+    :close-on-press-escape="false"
+    width="80%"
+  >
+    <div v-loading="configLoading" class="config-editor-container">
+      <div class="mb-4 flex items-center justify-between">
+        <div class="text-sm text-gray-600">
+          配置文件路径: {{ developerInfo.configPath }}
+        </div>
+        <div class="flex gap-2">
+          <el-button size="small" @click="formatConfigJson">
+            格式化
+          </el-button>
+        </div>
+      </div>
+
+      <MonacoEditor
+        ref="editorRef"
+        v-model="configContent"
+        language="json"
+        theme="vs-dark"
+        :options="{
+          fontSize: 14,
+          wordWrap: 'on',
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+        }"
+      />
+    </div>
+
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <el-button @click="closeConfigEditor">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="configSaving"
+          @click="saveConfigFile"
+        >
+          保存
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
 </template>
 
 <style scoped>
 .break-all {
   word-break: break-all;
+}
+
+.config-editor-container {
+  min-height: 400px;
 }
 </style>

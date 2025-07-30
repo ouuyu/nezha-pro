@@ -138,7 +138,7 @@ function getDomainFromUrl(url: string): string {
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(() => {
-    ElMessage.success('URL已复制')
+    ElMessage.success('URL 已复制')
   }).catch(() => {
     ElMessage.error('复制失败')
   })

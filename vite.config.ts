@@ -41,4 +41,16 @@ export default defineConfig({
     },
   },
   base: './',
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          monaco: ['monaco-editor'],
+        },
+      },
+    },
+  },
+  optimizeDeps: {
+    include: ['monaco-editor'],
+  },
 })
