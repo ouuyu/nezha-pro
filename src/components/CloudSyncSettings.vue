@@ -67,10 +67,6 @@ function openAddSourceDialog() {
 
 function editCloudSource(index: number) {
   const source = cloudSources.value[index]
-  if (source.isBuiltIn) {
-    ElMessage.error('内置数据源不允许编辑')
-    return
-  }
   editSourceIndex.value = index
   sourceForm.value = { ...source }
   sourceDialogVisible.value = true
@@ -108,11 +104,6 @@ function saveCloudSource() {
 }
 
 function confirmDeleteSource(index: number) {
-  const source = cloudSources.value[index]
-  if (source.isBuiltIn) {
-    ElMessage.error('内置数据源不允许删除')
-    return
-  }
   ElMessageBox.confirm(
     '确定要删除这个数据源吗？',
     '删除确认',
@@ -127,11 +118,6 @@ function confirmDeleteSource(index: number) {
 }
 
 function deleteCloudSource(index: number) {
-  const source = cloudSources.value[index]
-  if (source.isBuiltIn) {
-    ElMessage.error('内置数据源不允许删除')
-    return
-  }
   cloudSources.value.splice(index, 1)
   updateConfig()
   ElMessage.success('删除成功')

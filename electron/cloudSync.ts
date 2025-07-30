@@ -207,3 +207,95 @@ export async function syncAllCloudSources(): Promise<BatchSyncResult> {
     totalCount,
   }
 }
+
+/**
+ * 批量删除指定来源的云端数据
+ */
+export function deleteCloudDataBySource(sourceIds: string[]): SyncResult {
+  try {
+    const config = getConfig()
+    const currentKnowledgeBase = config.knowledgeBase || []
+
+    // 统计要删除的数量
+    const toDeleteCount = currentKnowledgeBase.filter(
+      (item: any) => item.dataSource === 'cloud' && sourceIds.includes(item.sourceId),
+    ).length
+
+    // 过滤掉指定来源的云端数据
+    const filteredKnowledgeBase = currentKnowledgeBase.filter(
+      (item: any) => !(item.dataSource === 'cloud' && sourceIds.includes(item.sourceId)),
+    )
+
+    config.knowledgeBase = filteredKnowledgeBase
+
+    const saveResult = saveConfig(config)
+
+    if (saveResult) {
+      console.log(`Successfully deleted ${toDeleteCount} cloud items from sources: ${sourceIds.join(', ')}`)
+      return {
+        success: true,
+        message: '删除成功',
+        itemCount: toDeleteCount,
+      }
+    }
+    else {
+      return {
+        success: false,
+        message: '保存配置失败',
+      }
+    }
+  }
+  catch (error) {
+    console.error('Failed to delete cloud data by source:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : '未知错误',
+    }
+  }
+}
+
+/**
+ * 删除所有云端数据
+ */
+export function deleteAllCloudData(): SyncResult {
+  try {
+    const config = getConfig()
+    const currentKnowledgeBase = config.knowledgeBase || []
+
+    // 统计删除的数量
+    const toDeleteCount = currentKnowledgeBase.filter(
+      (item: any) => item.dataSource === 'cloud',
+    ).length
+
+    // 只保留本地数据
+    const filteredKnowledgeBase = currentKnowledgeBase.filter(
+      (item: any) => item.dataSource !== 'cloud',
+    )
+
+    config.knowledgeBase = filteredKnowledgeBase
+
+    const saveResult = saveConfig(config)
+
+    if (saveResult) {
+      console.log(`Successfully deleted all ${toDeleteCount} cloud items`)
+      return {
+        success: true,
+        message: '删除成功',
+        itemCount: toDeleteCount,
+      }
+    }
+    else {
+      return {
+        success: false,
+        message: '保存配置失败',
+      }
+    }
+  }
+  catch (error) {
+    console.error('Failed to delete all cloud data:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : '未知错误',
+    }
+  }
+}

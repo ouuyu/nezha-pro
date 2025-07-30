@@ -1,7 +1,7 @@
 import process from 'node:process'
 import { app, ipcMain } from 'electron'
 import { restartAutoSync } from './autoSync'
-import { syncAllCloudSources, syncCloudKnowledgeSource } from './cloudSync'
+import { deleteAllCloudData, deleteCloudDataBySource, syncAllCloudSources, syncCloudKnowledgeSource } from './cloudSync'
 import { getConfig, getConfigPath, saveConfig } from './config'
 import { scheduleShutdowns } from './shutdown'
 
@@ -14,7 +14,6 @@ export function setupIpcHandlers() {
 
   // Handler for saving configuration
   ipcMain.handle('save-config', (_event, data: any) => {
-    // 支持新的数据格式和旧的格式
     let options: any = {}
 
     const config = data.config
@@ -23,7 +22,6 @@ export function setupIpcHandlers() {
     const result = saveConfig(config)
     if (result) {
       scheduleShutdowns()
-      // 只有在不跳过自动同步重启时才重启
       if (!options.skipAutoSyncRestart) {
         restartAutoSync()
       }
@@ -55,5 +53,15 @@ export function setupIpcHandlers() {
   // Handler for syncing all cloud knowledge sources
   ipcMain.handle('sync-all-cloud-knowledge', async () => {
     return await syncAllCloudSources()
+  })
+
+  // Handler for deleting cloud data by source
+  ipcMain.handle('delete-cloud-data-by-source', async (_event, sourceIds: string[]) => {
+    return deleteCloudDataBySource(sourceIds)
+  })
+
+  // Handler for deleting all cloud data
+  ipcMain.handle('delete-all-cloud-data', async () => {
+    return deleteAllCloudData()
   })
 }

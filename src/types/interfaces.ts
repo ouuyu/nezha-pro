@@ -115,6 +115,23 @@ export interface KnowledgeManagementEmits {
   (e: 'syncFromCloud'): void
 }
 
+/**
+ * 批量删除选项
+ */
+export interface BatchDeleteOptions {
+  deleteType: 'bySource' | 'all'
+  sourceIds?: string[]
+}
+
+/**
+ * 批量删除结果
+ */
+export interface BatchDeleteResult {
+  success: boolean
+  message: string
+  deletedCount: number
+}
+
 // ==================== 应用配置相关接口 ====================
 
 /**

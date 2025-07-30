@@ -37,7 +37,7 @@ async function syncFromCloud() {
   <div class="knowledge-base-container">
     <el-card class="full-height-card rounded-lg" shadow="hover">
       <el-tabs v-model="activeTab" class="full-height-tabs">
-        <el-tab-pane label="知识库管理" name="knowledge" class="full-height-pane">
+        <el-tab-pane label="知识库" name="knowledge" class="full-height-pane">
           <KnowledgeManagement
             :sync-loading="syncLoading"
             :last-sync-time="lastSyncTime"
@@ -45,7 +45,7 @@ async function syncFromCloud() {
           />
         </el-tab-pane>
 
-        <el-tab-pane label="云端同步设置" name="sync" class="full-height-pane">
+        <el-tab-pane label="云端同步" name="sync" class="full-height-pane">
           <CloudSyncSettings />
         </el-tab-pane>
       </el-tabs>
