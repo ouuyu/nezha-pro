@@ -1,14 +1,9 @@
 <script setup lang="ts">
+import type { ShutdownTime } from '../types/interfaces'
 import { Calendar, Check, Clock, Delete, Edit, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { getConfig, saveConfig as saveConfigIpc } from '../utils/ipc'
-
-interface ShutdownTime {
-  time: string
-  weekdays: number[]
-  active: boolean
-}
 
 const editingIndex = ref<number | null>(null)
 

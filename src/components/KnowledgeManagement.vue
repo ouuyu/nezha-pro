@@ -1,30 +1,11 @@
 <script setup lang="ts">
-import { ElButton, ElMessage, ElMessageBox, ElTableV2, ElTag, TableV2FixedDir } from 'element-plus'
-import { h, onMounted, ref } from 'vue'
+import type { KnowledgeItem, KnowledgeManagementEmits, KnowledgeManagementProps } from '../types/interfaces'
+import { ElAutoResizer, ElButton, ElMessage, ElMessageBox, ElTableV2, ElTag, TableV2FixedDir } from 'element-plus'
+import { h, nextTick, onMounted, ref, watch } from 'vue'
 import { getConfig, saveConfig } from '../utils/ipc'
 
-interface KnowledgeItem {
-  author: string
-  source: string
-  content: string
-  createTime?: string
-  updateTime?: string
-  dataSource?: 'local' | 'cloud'
-  sourceId?: string | null
-  sourceName?: string
-}
-
-interface Props {
-  syncLoading: boolean
-  lastSyncTime: string
-}
-
-interface Emits {
-  (e: 'syncFromCloud'): void
-}
-
-defineProps<Props>()
-const emit = defineEmits<Emits>()
+const props = defineProps<KnowledgeManagementProps>()
+const emit = defineEmits<KnowledgeManagementEmits>()
 
 const dialogVisible = ref(false)
 const editIndex = ref<number | null>(null)
@@ -45,10 +26,25 @@ const rules = {
   ],
 }
 
-// 本地知识库数据
 const knowledgeBase = ref<KnowledgeItem[]>([])
+const tableKey = ref(0)
 
-// 定义表格列
+function forceTableRerender() {
+  tableKey.value++
+}
+
+watch(knowledgeBase, () => {
+  nextTick(() => {
+    forceTableRerender()
+  })
+}, { deep: true })
+
+watch(() => props.syncLoading, (newVal, oldVal) => {
+  if (oldVal === true && newVal === false) {
+    loadKnowledgeBase()
+  }
+})
+
 const columns = [
   {
     key: 'author',
@@ -80,7 +76,6 @@ const columns = [
     dataKey: 'dataSource',
     width: 120,
     align: 'center' as const,
-    // 自定义渲染内容
     cellRenderer: ({ rowData }: { rowData: KnowledgeItem }) => (
       h('div', { class: 'flex flex-col items-center' }, [
         h(ElTag, { type: rowData.dataSource === 'cloud' ? 'info' : 'success', size: 'small' }, () => (
@@ -126,6 +121,9 @@ async function loadKnowledgeBase() {
   })
   if (result.success && result.data) {
     knowledgeBase.value = result.data.knowledgeBase || []
+    // 数据加载后强制表格重新渲染
+    await nextTick()
+    forceTableRerender()
   }
 }
 
@@ -235,15 +233,15 @@ onMounted(loadKnowledgeBase)
 </script>
 
 <template>
-  <div>
-    <div class="mb-4 flex items-center justify-between">
-      <div>
+  <div class="knowledge-management-container">
+    <div class="header-section">
+      <div class="flex items-center">
         <h2 class="text-lg font-bold">
           知识库管理
         </h2>
-        <div v-if="lastSyncTime" class="mt-1 text-sm text-gray-500">
+        <span v-if="lastSyncTime" class="ml-2 text-sm text-gray-500">
           最后同步时间: {{ lastSyncTime }}
-        </div>
+        </span>
       </div>
       <div class="flex gap-2">
         <ElButton
@@ -259,45 +257,73 @@ onMounted(loadKnowledgeBase)
       </div>
     </div>
 
-    <ElTableV2
-      :data="knowledgeBase"
-      :columns="columns"
-      :width="800"
-      :height="500"
-      empty-text="暂无知识数据"
-    />
-
-    <el-dialog
-      v-model="dialogVisible"
-      :title="editIndex === null ? '新增知识' : '编辑知识'"
-      width="600px"
-    >
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="作者" prop="author">
-          <el-input v-model="form.author" placeholder="作者" />
-        </el-form-item>
-        <el-form-item label="出处" prop="source">
-          <el-input v-model="form.source" placeholder="知识来源，如书籍、网站等" />
-        </el-form-item>
-        <el-form-item label="内容" prop="content">
-          <el-input
-            v-model="form.content"
-            type="textarea"
-            placeholder="输入知识内容"
-            :rows="6"
-            maxlength="1000"
-            show-word-limit
+    <div class="table-section">
+      <ElAutoResizer>
+        <template #default="{ height, width }">
+          <ElTableV2
+            :key="tableKey"
+            :data="knowledgeBase"
+            :columns="columns"
+            :width="width"
+            :height="height"
+            empty-text="暂无知识数据"
           />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <ElButton @click="dialogVisible = false">
-          取消
-        </ElButton>
-        <ElButton type="primary" @click="saveKnowledge">
-          保存
-        </ElButton>
-      </template>
-    </el-dialog>
+        </template>
+      </ElAutoResizer>
+    </div>
   </div>
+
+  <el-dialog
+    v-model="dialogVisible"
+    :title="editIndex === null ? '新增知识' : '编辑知识'"
+    width="600px"
+  >
+    <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+      <el-form-item label="作者" prop="author">
+        <el-input v-model="form.author" placeholder="作者" />
+      </el-form-item>
+      <el-form-item label="出处" prop="source">
+        <el-input v-model="form.source" placeholder="知识来源，如书籍、网站等" />
+      </el-form-item>
+      <el-form-item label="内容" prop="content">
+        <el-input
+          v-model="form.content"
+          type="textarea"
+          placeholder="输入知识内容"
+          :rows="6"
+          maxlength="1000"
+          show-word-limit
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <ElButton @click="dialogVisible = false">
+        取消
+      </ElButton>
+      <ElButton type="primary" @click="saveKnowledge">
+        保存
+      </ElButton>
+    </template>
+  </el-dialog>
 </template>
+
+<style scoped>
+.knowledge-management-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header-section {
+  flex-shrink: 0;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.table-section {
+  flex: 1;
+  min-height: 0;
+}
+</style>

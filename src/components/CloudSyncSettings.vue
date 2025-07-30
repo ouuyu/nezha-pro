@@ -1,16 +1,8 @@
 <script setup lang="ts">
+import type { CloudKnowledgeSource } from '../types/interfaces'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
-
 import { getConfig, saveConfig } from '../utils/ipc'
-
-interface CloudSource {
-  id: string
-  name: string
-  url: string
-  enabled: boolean
-  lastSyncTime?: string
-}
 
 const sourceDialogVisible = ref(false)
 const editSourceIndex = ref<number | null>(null)
@@ -29,7 +21,7 @@ const sourceRules = {
 }
 
 // 本地数据，独立管理
-const cloudSources = ref<CloudSource[]>([])
+const cloudSources = ref<CloudKnowledgeSource[]>([])
 const autoSyncEnabled = ref(false)
 const syncInterval = ref(60)
 
@@ -74,8 +66,13 @@ function openAddSourceDialog() {
 }
 
 function editCloudSource(index: number) {
+  const source = cloudSources.value[index]
+  if (source.isBuiltIn) {
+    ElMessage.error('内置数据源不允许编辑')
+    return
+  }
   editSourceIndex.value = index
-  sourceForm.value = { ...cloudSources.value[index] }
+  sourceForm.value = { ...source }
   sourceDialogVisible.value = true
   setTimeout(() => {
     sourceFormRef.value?.clearValidate()
@@ -111,6 +108,11 @@ function saveCloudSource() {
 }
 
 function confirmDeleteSource(index: number) {
+  const source = cloudSources.value[index]
+  if (source.isBuiltIn) {
+    ElMessage.error('内置数据源不允许删除')
+    return
+  }
   ElMessageBox.confirm(
     '确定要删除这个数据源吗？',
     '删除确认',
@@ -125,13 +127,17 @@ function confirmDeleteSource(index: number) {
 }
 
 function deleteCloudSource(index: number) {
+  const source = cloudSources.value[index]
+  if (source.isBuiltIn) {
+    ElMessage.error('内置数据源不允许删除')
+    return
+  }
   cloudSources.value.splice(index, 1)
   updateConfig()
   ElMessage.success('删除成功')
 }
 
 function toggleSourceEnabled(_index: number) {
-  // el-switch 已经自动更新了 enabled 状态，这里只需要保存配置
   updateConfig()
 }
 
@@ -140,7 +146,7 @@ function updateAutoSyncSettings() {
   ElMessage.success('自动同步设置已保存')
 }
 
-async function testConnection(source: CloudSource) {
+async function testConnection(source: CloudKnowledgeSource) {
   try {
     ElMessage.info('正在测试连接...')
     const result = await window.require('electron').ipcRenderer.invoke('sync-cloud-knowledge', {
@@ -162,17 +168,12 @@ async function testConnection(source: CloudSource) {
   }
 }
 
-// 组件挂载时加载配置
 onMounted(loadConfig)
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- 自动同步设置 -->
-    <div>
-      <h3 class="mb-4 text-lg font-bold">
-        自动同步设置
-      </h3>
+  <div class="h-full flex flex-col gap-6">
+    <div class="flex-shrink-0">
       <div class="space-y-4">
         <div class="flex items-center space-x-4">
           <el-switch
@@ -185,7 +186,7 @@ onMounted(loadConfig)
           <span>同步间隔：</span>
           <el-input-number
             v-model="syncInterval"
-            :min="5"
+            :min="1"
             :max="1440"
             @change="updateAutoSyncSettings"
           />
@@ -194,8 +195,7 @@ onMounted(loadConfig)
       </div>
     </div>
 
-    <!-- 云端数据源管理 -->
-    <div>
+    <div class="min-h-0 flex flex-1 flex-col">
       <div class="mb-4 flex items-center justify-between">
         <h3 class="text-lg font-bold">
           云端数据源
@@ -205,35 +205,54 @@ onMounted(loadConfig)
         </el-button>
       </div>
 
-      <el-table :data="cloudSources" style="width: 100%" empty-text="暂无数据源">
-        <el-table-column prop="name" label="名称" width="150" show-overflow-tooltip />
-        <el-table-column prop="url" label="URL" show-overflow-tooltip />
-        <el-table-column prop="enabled" label="状态" width="80" align="center">
-          <template #default="scope">
-            <el-switch
-              v-model="scope.row.enabled"
-              @change="toggleSourceEnabled(scope.$index)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column prop="lastSyncTime" label="最后同步" width="160" show-overflow-tooltip />
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="scope">
-            <el-button size="small" @click="testConnection(scope.row)">
-              测试
-            </el-button>
-            <el-button size="small" @click="editCloudSource(scope.$index)">
-              编辑
-            </el-button>
-            <el-button size="small" type="danger" @click="confirmDeleteSource(scope.$index)">
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="min-h-[300px] flex-1">
+        <el-table :data="cloudSources" style="width: 100%" empty-text="暂无数据源" height="100%">
+          <el-table-column prop="name" label="名称" width="180" show-overflow-tooltip>
+            <template #default="scope">
+              <div class="flex items-center gap-2">
+                <span>{{ scope.row.name }}</span>
+                <el-tag v-if="scope.row.isBuiltIn" size="small" type="info">
+                  内置
+                </el-tag>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="url" label="URL" show-overflow-tooltip />
+          <el-table-column prop="enabled" label="状态" width="80" align="center">
+            <template #default="scope">
+              <el-switch
+                v-model="scope.row.enabled"
+                @change="toggleSourceEnabled(scope.$index)"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column prop="lastSyncTime" label="最后同步" width="160" show-overflow-tooltip />
+          <el-table-column label="操作" width="200" fixed="right">
+            <template #default="scope">
+              <el-button size="small" @click="testConnection(scope.row)">
+                测试
+              </el-button>
+              <el-button
+                size="small"
+                :disabled="scope.row.isBuiltIn"
+                @click="editCloudSource(scope.$index)"
+              >
+                编辑
+              </el-button>
+              <el-button
+                size="small"
+                type="danger"
+                :disabled="scope.row.isBuiltIn"
+                @click="confirmDeleteSource(scope.$index)"
+              >
+                删除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </div>
 
-    <!-- 新增/编辑数据源对话框 -->
     <el-dialog
       v-model="sourceDialogVisible"
       :title="editSourceIndex === null ? '新增数据源' : '编辑数据源'"

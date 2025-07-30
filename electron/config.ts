@@ -1,3 +1,4 @@
+import type { CloudKnowledgeSource } from '../src/types/interfaces'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { app } from 'electron'
@@ -6,13 +7,40 @@ import { app } from 'electron'
 const userDataPath = app.getPath('userData')
 const configPath = path.join(userDataPath, 'config.json')
 
+// Built-in default cloud knowledge sources (system-level, read-only)
+const builtInCloudSources: CloudKnowledgeSource[] = [
+  {
+    id: 'builtin-gaokao',
+    name: '高考古诗文',
+    url: 'https://tvv.tw/https://raw.githubusercontent.com/ouuyu/gaokao-poetry/refs/heads/master/generated/divided.json',
+    enabled: true,
+    isBuiltIn: true,
+  },
+]
+
 // Default configuration
 const defaultConfig = {
   shutdownTimes: [],
   knowledgeBase: [],
-  cloudKnowledgeSources: [],
+  cloudKnowledgeSources: [] as any[],
   autoSyncEnabled: false,
   syncInterval: 60,
+}
+
+// Store sync times for built-in sources in memory
+const builtInSourceSyncTimes = new Map<string, string>()
+
+// Get built-in cloud sources with sync times from memory
+export function getBuiltInCloudSources() {
+  return builtInCloudSources.map(source => ({
+    ...source,
+    lastSyncTime: builtInSourceSyncTimes.get(source.id) || undefined,
+  }))
+}
+
+// Update sync time for built-in source
+export function updateBuiltInSourceSyncTime(sourceId: string, syncTime: string) {
+  builtInSourceSyncTimes.set(sourceId, syncTime)
 }
 
 // Ensure config file exists
@@ -54,21 +82,42 @@ export function ensureConfigFile() {
   }
 }
 
-// Get configuration
+// Get configuration with built-in sources merged
 export function getConfig() {
   try {
-    return JSON.parse(fs.readFileSync(configPath, 'utf8'))
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'))
+
+    // Merge built-in cloud sources with user-defined sources
+    const builtInSources = getBuiltInCloudSources()
+    const userSources = config.cloudKnowledgeSources || []
+
+    // Combine built-in sources with user sources, built-in sources come first
+    config.cloudKnowledgeSources = [...builtInSources, ...userSources]
+
+    return config
   }
   catch (error) {
     console.error('Error reading config file:', error)
-    return defaultConfig
+    const configWithBuiltIn = { ...defaultConfig }
+    configWithBuiltIn.cloudKnowledgeSources = getBuiltInCloudSources()
+    return configWithBuiltIn
   }
 }
 
-// Save configuration
+// Save configuration (filters out built-in sources)
 export function saveConfig(config: any) {
   try {
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
+    // Create a copy of config to avoid modifying the original
+    const configToSave = { ...config }
+
+    // Filter out built-in sources before saving, only save user-defined sources
+    if (configToSave.cloudKnowledgeSources) {
+      configToSave.cloudKnowledgeSources = configToSave.cloudKnowledgeSources.filter(
+        (source: any) => !source.isBuiltIn,
+      )
+    }
+
+    fs.writeFileSync(configPath, JSON.stringify(configToSave, null, 2))
     return true
   }
   catch (error) {

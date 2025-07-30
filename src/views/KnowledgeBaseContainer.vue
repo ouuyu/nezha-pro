@@ -8,7 +8,6 @@ const activeTab = ref('knowledge')
 const syncLoading = ref(false)
 const lastSyncTime = ref('')
 
-// 从云端同步数据
 async function syncFromCloud() {
   try {
     syncLoading.value = true
@@ -35,27 +34,68 @@ async function syncFromCloud() {
 </script>
 
 <template>
-  <el-card class="rounded-lg" shadow="hover">
-    <el-tabs v-model="activeTab">
-      <!-- 知识库管理标签页 -->
-      <el-tab-pane label="知识库管理" name="knowledge">
-        <KnowledgeManagement
-          :sync-loading="syncLoading"
-          :last-sync-time="lastSyncTime"
-          @sync-from-cloud="syncFromCloud"
-        />
-      </el-tab-pane>
+  <div class="knowledge-base-container">
+    <el-card class="full-height-card rounded-lg" shadow="hover">
+      <el-tabs v-model="activeTab" class="full-height-tabs">
+        <el-tab-pane label="知识库管理" name="knowledge" class="full-height-pane">
+          <KnowledgeManagement
+            :sync-loading="syncLoading"
+            :last-sync-time="lastSyncTime"
+            @sync-from-cloud="syncFromCloud"
+          />
+        </el-tab-pane>
 
-      <!-- 云端同步设置标签页 -->
-      <el-tab-pane label="云端同步设置" name="sync">
-        <CloudSyncSettings />
-      </el-tab-pane>
-    </el-tabs>
-  </el-card>
+        <el-tab-pane label="云端同步设置" name="sync" class="full-height-pane">
+          <CloudSyncSettings />
+        </el-tab-pane>
+      </el-tabs>
+    </el-card>
+  </div>
 </template>
 
 <style scoped>
-.rounded-lg {
-  border-radius: 8px;
+.knowledge-base-container {
+  height: calc(100vh - 32px); /* 减去 main 容器的 padding */
+  display: flex;
+  flex-direction: column;
+}
+
+.full-height-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-height-card :deep(.el-card__body) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.full-height-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-height-tabs :deep(.el-tabs__header) {
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.full-height-tabs :deep(.el-tabs__content) {
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-height-pane {
+  height: 100%;
+}
+
+.full-height-tabs :deep(.el-tab-pane) {
+  height: 100%;
 }
 </style>

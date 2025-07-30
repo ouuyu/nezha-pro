@@ -1,31 +1,15 @@
+import type {
+  BatchSyncResult,
+  CloudKnowledgeItem,
+  CloudKnowledgeSource,
+  SyncResult,
+  SyncSourceConfig,
+} from '../src/types/interfaces'
 import * as http from 'node:http'
 import * as https from 'node:https'
 import { URL } from 'node:url'
-import { getConfig, saveConfig } from './config'
+import { getConfig, saveConfig, updateBuiltInSourceSyncTime } from './config'
 
-export interface CloudKnowledgeSource {
-  id: string
-  name: string
-  url: string
-  enabled: boolean
-  lastSyncTime?: string
-}
-
-export interface CloudKnowledgeItem {
-  author: string
-  source: string
-  content: string
-  createTime?: string
-  updateTime?: string
-}
-
-export interface SyncResult {
-  success: boolean
-  message: string
-  itemCount?: number
-}
-
-// 从URL获取数据
 function fetchFromUrl(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     try {
@@ -64,10 +48,8 @@ function fetchFromUrl(url: string): Promise<string> {
   })
 }
 
-// 解析云端知识库数据
 function parseCloudData(data: string): CloudKnowledgeItem[] {
   try {
-    // 尝试解析JSON格式
     const jsonData = JSON.parse(data)
 
     if (Array.isArray(jsonData)) {
@@ -79,7 +61,7 @@ function parseCloudData(data: string): CloudKnowledgeItem[] {
     }
 
     if (jsonData.knowledgeBase && Array.isArray(jsonData.knowledgeBase)) {
-      return jsonData.knowledgeBase.filter(item =>
+      return jsonData.knowledgeBase.filter((item: any) =>
         item
         && typeof item.author === 'string'
         && typeof item.content === 'string',
@@ -89,24 +71,21 @@ function parseCloudData(data: string): CloudKnowledgeItem[] {
     return []
   }
   catch {
-    // 如果不是JSON，尝试解析其他格式（如CSV、纯文本等）
     return parseTextData(data)
   }
 }
 
-// 解析文本格式的数据
 function parseTextData(data: string): CloudKnowledgeItem[] {
   const lines = data.split('\n').filter(line => line.trim())
   const items: CloudKnowledgeItem[] = []
 
-  // 简单的CSV格式解析：author,source,content
   for (const line of lines) {
     const parts = line.split(',').map(part => part.trim())
     if (parts.length >= 3) {
       items.push({
         author: parts[0],
         source: parts[1] || '',
-        content: parts.slice(2).join(','), // 内容可能包含逗号
+        content: parts.slice(2).join(','),
       })
     }
   }
@@ -114,16 +93,10 @@ function parseTextData(data: string): CloudKnowledgeItem[] {
   return items
 }
 
-// 同步单个云端数据源
-export async function syncCloudKnowledgeSource(sourceConfig: {
-  sourceId: string
-  url: string
-  name: string
-}): Promise<SyncResult> {
+export async function syncCloudKnowledgeSource(sourceConfig: SyncSourceConfig): Promise<SyncResult> {
   try {
     console.log(`Start sync cloud source: ${sourceConfig.name}`)
 
-    // 获取云端数据
     const rawData = await fetchFromUrl(sourceConfig.url)
     const cloudItems = parseCloudData(rawData)
 
@@ -134,16 +107,13 @@ export async function syncCloudKnowledgeSource(sourceConfig: {
       }
     }
 
-    // 获取当前配置
     const config = getConfig()
     const currentKnowledgeBase = config.knowledgeBase || []
 
-    // 移除来自该数据源的旧数据
     const filteredKnowledgeBase = currentKnowledgeBase.filter(
       (item: any) => item.sourceId !== sourceConfig.sourceId,
     )
 
-    // 添加新的云端数据
     const newCloudItems = cloudItems.map(item => ({
       ...item,
       dataSource: 'cloud',
@@ -152,16 +122,19 @@ export async function syncCloudKnowledgeSource(sourceConfig: {
       syncTime: new Date().toLocaleString(),
     }))
 
-    // 更新配置
     config.knowledgeBase = [...filteredKnowledgeBase, ...newCloudItems]
 
-    // 更新数据源的最后同步时间
+    const syncTime = new Date().toLocaleString()
     if (config.cloudKnowledgeSources) {
       const sourceIndex = config.cloudKnowledgeSources.findIndex(
         (s: CloudKnowledgeSource) => s.id === sourceConfig.sourceId,
       )
       if (sourceIndex >= 0) {
-        config.cloudKnowledgeSources[sourceIndex].lastSyncTime = new Date().toLocaleString()
+        config.cloudKnowledgeSources[sourceIndex].lastSyncTime = syncTime
+
+        if (config.cloudKnowledgeSources[sourceIndex].isBuiltIn) {
+          updateBuiltInSourceSyncTime(sourceConfig.sourceId, syncTime)
+        }
       }
     }
 
@@ -191,12 +164,7 @@ export async function syncCloudKnowledgeSource(sourceConfig: {
   }
 }
 
-// 同步所有启用的云端数据源
-export async function syncAllCloudSources(): Promise<{
-  success: boolean
-  results: Array<{ sourceId: string, sourceName: string, result: SyncResult }>
-  totalCount: number
-}> {
+export async function syncAllCloudSources(): Promise<BatchSyncResult> {
   const config = getConfig()
   const cloudSources = config.cloudKnowledgeSources || []
   const enabledSources = cloudSources.filter((source: CloudKnowledgeSource) => source.enabled)

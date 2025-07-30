@@ -1,3 +1,4 @@
+import type { IpcOptions, IpcResult } from '../types/interfaces'
 import { ElMessage } from 'element-plus'
 
 function deepClone<T>(obj: T): T {
@@ -12,21 +13,6 @@ function deepClone<T>(obj: T): T {
     console.warn('Failed to clone object for IPC, using original:', error)
     return obj
   }
-}
-
-export interface IpcResult<T = any> {
-  success: boolean
-  data?: T
-  error?: string
-}
-
-export interface IpcOptions {
-  showSuccessMessage?: boolean
-  showErrorMessage?: boolean
-  successMessage?: string
-  errorMessage?: string
-  silent?: boolean
-  skipAutoSyncRestart?: boolean
 }
 
 class IpcManager {
