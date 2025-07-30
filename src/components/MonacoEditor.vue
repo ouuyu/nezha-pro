@@ -2,7 +2,6 @@
 import * as monaco from 'monaco-editor'
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-// 定义 Props
 interface Props {
   modelValue: string
   language?: string
@@ -13,14 +12,12 @@ interface Props {
   options?: monaco.editor.IStandaloneEditorConstructionOptions
 }
 
-// 定义 Emits
 interface Emits {
   (e: 'update:modelValue', value: string): void
   (e: 'change', value: string): void
   (e: 'ready', editor: monaco.editor.IStandaloneCodeEditor): void
 }
 
-// 设置 Props 默认值
 const props = withDefaults(defineProps<Props>(), {
   language: 'json',
   theme: 'vs-dark',
@@ -35,39 +32,41 @@ const emit = defineEmits<Emits>()
 const editorContainerRef = ref<HTMLDivElement | null>(null)
 let editor: monaco.editor.IStandaloneCodeEditor | null = null
 
-// 更稳定、通用的默认配置
 const defaultOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
-  automaticLayout: true, // 编辑器自适应布局
-  formatOnPaste: true, // 粘贴时自动格式化
-  formatOnType: true, // 输入时自动格式化
-  minimap: { enabled: false }, // 不显示代码缩略图
-  scrollBeyondLastLine: false, // 禁止滚动超过最后一行
-  wordWrap: 'on', // 自动换行
-  tabSize: 2, // tab 大小
+  automaticLayout: true,
+  formatOnPaste: true,
+  formatOnType: true,
+  minimap: { enabled: false },
+  scrollBeyondLastLine: false,
+  wordWrap: 'on',
+  tabSize: 2,
+  insertSpaces: true,
+  detectIndentation: false,
 }
 
-/**
- * 初始化编辑器
- */
 function initEditor() {
   if (!editorContainerRef.value)
     return
 
-  // 创建编辑器实例
+  monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+    validate: true,
+    allowComments: false,
+    schemas: [],
+    enableSchemaRequest: false,
+  })
+
   editor = monaco.editor.create(editorContainerRef.value, {
     value: props.modelValue,
     language: props.language,
     theme: props.theme,
     readOnly: props.readonly,
     ...defaultOptions,
-    ...props.options, // 允许父组件覆盖默认配置
+    ...props.options,
   })
 
-  // 监听内容变化
   editor.onDidChangeModelContent(() => {
     if (editor) {
       const value = editor.getValue()
-      // 避免因 watch 触发的无限更新循环
       if (props.modelValue !== value) {
         emit('update:modelValue', value)
         emit('change', value)
@@ -75,30 +74,25 @@ function initEditor() {
     }
   })
 
-  // 触发 'ready' 事件，将 editor 实例暴露给父组件
   emit('ready', editor)
 }
 
-// 监听 modelValue 的变化，从外部更新编辑器内容
 watch(() => props.modelValue, (newValue) => {
   if (editor && editor.getValue() !== newValue) {
     editor.setValue(newValue)
   }
 })
 
-// 监听语言变化
 watch(() => props.language, (newLanguage) => {
   if (editor && editor.getModel()) {
     monaco.editor.setModelLanguage(editor.getModel()!, newLanguage)
   }
 })
 
-// 监听主题变化
 watch(() => props.theme, (newTheme) => {
   monaco.editor.setTheme(newTheme)
 })
 
-// 监听只读状态变化
 watch(() => props.readonly, (newReadonly) => {
   editor?.updateOptions({ readOnly: newReadonly })
 })
@@ -110,15 +104,43 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  // 销毁编辑器实例，防止内存泄漏
   if (editor) {
     editor.dispose()
     editor = null
   }
 })
 
-function formatDocument() {
-  editor?.getAction('editor.action.formatDocument')?.run()
+async function formatDocument() {
+  if (!editor)
+    return
+
+  try {
+    if (props.language === 'json') {
+      const value = editor.getValue()
+      if (value.trim()) {
+        try {
+          const parsed = JSON.parse(value)
+          const formatted = JSON.stringify(parsed, null, 2)
+          editor.setValue(formatted)
+          return
+        }
+        catch (error) {
+          console.warn('JSON 解析失败，使用默认格式化:', error)
+        }
+      }
+    }
+
+    const action = editor.getAction('editor.action.formatDocument')
+    if (action) {
+      await action.run()
+    }
+    else {
+      console.warn('格式化操作不可用')
+    }
+  }
+  catch (error) {
+    console.error('格式化文档时出错:', error)
+  }
 }
 
 function validateJson(): { isValid: boolean, error?: string } {
@@ -141,7 +163,6 @@ function validateJson(): { isValid: boolean, error?: string } {
   }
 }
 
-// 使用 defineExpose 暴露方法
 defineExpose({
   formatDocument,
   validateJson,
@@ -161,9 +182,9 @@ defineExpose({
 
 <style scoped>
 .monaco-editor-container {
-  border: 1px solid #dcdfe6;
-  border-radius: 4px !important;
+  border-radius: 4px;
   overflow: hidden;
   text-align: left;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 </style>

@@ -160,9 +160,26 @@ async function saveConfigFile() {
 }
 
 // 格式化JSON
-function formatConfigJson() {
-  if (editorRef.value) {
-    editorRef.value.formatDocument()
+async function formatConfigJson() {
+  if (!editorRef.value) {
+    ElMessage.error('编辑器未初始化')
+    return
+  }
+
+  try {
+    // 先验证 JSON 格式
+    const validation = editorRef.value.validateJson()
+    if (!validation.isValid) {
+      ElMessage.error(`无法格式化：${validation.error}`)
+      return
+    }
+
+    await editorRef.value.formatDocument()
+    ElMessage.success('JSON 格式化成功')
+  }
+  catch (error) {
+    console.error('格式化失败:', error)
+    ElMessage.error('格式化失败，请检查 JSON 格式')
   }
 }
 
