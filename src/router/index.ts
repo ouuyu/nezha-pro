@@ -22,6 +22,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DeveloperMode',
     component: () => import('../views/DeveloperMode.vue'),
   },
+  {
+    path: '/shutdown-confirm',
+    name: 'ShutdownConfirm',
+    component: () => import('../views/ShutdownConfirm.vue'),
+  },
 ]
 
 const router = createRouter({

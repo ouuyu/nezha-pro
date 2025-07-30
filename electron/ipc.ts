@@ -4,7 +4,7 @@ import { app, ipcMain } from 'electron'
 import { restartAutoSync } from './autoSync'
 import { deleteAllCloudData, deleteCloudDataBySource, syncAllCloudSources, syncCloudKnowledgeSource } from './cloudSync'
 import { getConfig, getConfigPath, saveConfig } from './config'
-import { scheduleShutdowns } from './shutdown'
+import { cancelShutdown, executeSystemShutdown, scheduleShutdowns } from './shutdown'
 
 // Set up IPC handlers
 export function setupIpcHandlers() {
@@ -112,5 +112,17 @@ export function setupIpcHandlers() {
         error: error instanceof Error ? error.message : '保存配置文件失败',
       }
     }
+  })
+
+  // Handler for executing system shutdown
+  ipcMain.handle('execute-shutdown', () => {
+    executeSystemShutdown()
+    return { success: true }
+  })
+
+  // Handler for canceling shutdown
+  ipcMain.handle('cancel-shutdown', () => {
+    cancelShutdown()
+    return { success: true }
   })
 }

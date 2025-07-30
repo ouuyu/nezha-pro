@@ -15,8 +15,8 @@ const sourceRules = {
     { min: 1, max: 50, message: '名称长度在 1 到 50 个字符', trigger: 'blur' },
   ],
   url: [
-    { required: true, message: '请输入数据源URL', trigger: 'blur' },
-    { type: 'url', message: '请输入有效的URL地址', trigger: 'blur' },
+    { required: true, message: '请输入数据源 URL', trigger: 'blur' },
+    { type: 'url', message: '请输入有效的 URL 地址', trigger: 'blur' },
   ],
 }
 

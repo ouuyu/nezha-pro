@@ -141,6 +141,22 @@ class IpcManager {
       ...options,
     })
   }
+
+  async executeShutdown(options: IpcOptions = {}): Promise<IpcResult<boolean>> {
+    return this.invoke<boolean>('execute-shutdown', undefined, {
+      showErrorMessage: true,
+      errorMessage: '执行关机失败',
+      ...options,
+    })
+  }
+
+  async cancelShutdown(options: IpcOptions = {}): Promise<IpcResult<boolean>> {
+    return this.invoke<boolean>('cancel-shutdown', undefined, {
+      showErrorMessage: true,
+      errorMessage: '取消关机失败',
+      ...options,
+    })
+  }
 }
 
 const ipcManager = new IpcManager()
@@ -154,3 +170,5 @@ export const saveConfig = ipcManager.saveConfig.bind(ipcManager)
 export const getDeveloperInfo = ipcManager.getDeveloperInfo.bind(ipcManager)
 export const getRawConfig = ipcManager.getRawConfig.bind(ipcManager)
 export const saveRawConfig = ipcManager.saveRawConfig.bind(ipcManager)
+export const executeShutdown = ipcManager.executeShutdown.bind(ipcManager)
+export const cancelShutdown = ipcManager.cancelShutdown.bind(ipcManager)
