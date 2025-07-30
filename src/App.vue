@@ -8,6 +8,8 @@ const router = useRouter()
 const isCollapse = ref(false)
 const isMobileScreen = ref(false)
 
+const isCountdownPage = computed(() => route.path === '/shutdown-confirm')
+
 const menuItems = [
   {
     title: '仪表盘',
@@ -60,7 +62,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <el-container class="min-h-screen">
+  <div v-if="isCountdownPage" class="h-full w-full">
+    <router-view />
+  </div>
+
+  <el-container v-else class="min-h-screen">
     <el-aside
       class="fixed left-0 top-0 h-screen shadow-md transition-all duration-300"
       :width="isCollapse ? '64px' : '240px'"

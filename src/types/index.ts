@@ -5,6 +5,8 @@ export * from './interfaces'
 export type {
   // 应用配置相关
   AppConfig,
+  // 背景配置相关
+  BackgroundConfig,
   BatchSyncResult,
   CloudKnowledgeItem,
   // 云端知识源相关
@@ -34,6 +36,8 @@ export type {
   PartialBy,
 
   RequiredBy,
+  // 关机统计相关
+  ShutdownStats,
   // 定时关机相关
   ShutdownTime,
 

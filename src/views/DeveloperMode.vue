@@ -8,7 +8,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
 import MonacoEditor from '../components/MonacoEditor.vue'
-import { getDeveloperInfo, getRawConfig, saveRawConfig } from '../utils/ipc'
+import { getDeveloperInfo, getRawConfig, saveRawConfig, triggerShutdownWindow } from '../utils/ipc'
 
 const loading = ref(false)
 const developerInfo = ref<any>({})
@@ -189,6 +189,19 @@ function closeConfigEditor() {
   configContent.value = ''
 }
 
+// 手动唤起关机倒计时窗口
+async function handleTriggerShutdownWindow() {
+  try {
+    await triggerShutdownWindow({
+      showSuccessMessage: true,
+      showErrorMessage: true,
+    })
+  }
+  catch (error) {
+    console.error('唤起关机倒计时窗口失败:', error)
+  }
+}
+
 onMounted(() => {
   loadDeveloperInfo()
 })
@@ -252,12 +265,21 @@ onMounted(() => {
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
-    <el-button type="primary" @click="openConfigEditor">
-      <el-icon class="mr-1">
-        <Edit />
-      </el-icon>
-      编辑配置文件
-    </el-button>
+    <div class="flex gap-3">
+      <el-button type="primary" @click="openConfigEditor">
+        <el-icon class="mr-1">
+          <Edit />
+        </el-icon>
+        编辑配置文件
+      </el-button>
+
+      <el-button type="warning" @click="handleTriggerShutdownWindow">
+        <el-icon class="mr-1">
+          <i class="i-carbon-power" />
+        </el-icon>
+        测试关机倒计时
+      </el-button>
+    </div>
 
     <div class="mt-4 text-center">
       <el-button type="primary" text :loading="loading" @click="loadDeveloperInfo">

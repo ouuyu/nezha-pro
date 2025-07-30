@@ -15,7 +15,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/knowledge-base',
     name: 'KnowledgeBase',
-    component: () => import('../views/KnowledgeBaseContainer.vue'),
+    component: () => import('../views/KnowledgeBase.vue'),
   },
   {
     path: '/developer-mode',

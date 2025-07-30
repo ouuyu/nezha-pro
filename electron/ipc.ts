@@ -4,7 +4,7 @@ import { app, ipcMain } from 'electron'
 import { restartAutoSync } from './autoSync'
 import { deleteAllCloudData, deleteCloudDataBySource, syncAllCloudSources, syncCloudKnowledgeSource } from './cloudSync'
 import { getConfig, getConfigPath, saveConfig } from './config'
-import { cancelShutdown, executeSystemShutdown, scheduleShutdowns } from './shutdown'
+import { cancelShutdown, createShutdownWindow, executeSystemShutdown, scheduleShutdowns } from './shutdown'
 
 // Set up IPC handlers
 export function setupIpcHandlers() {
@@ -77,13 +77,15 @@ export function setupIpcHandlers() {
           content: rawContent,
           path: configPath,
         }
-      } else {
+      }
+      else {
         return {
           success: false,
           error: '配置文件不存在',
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error reading raw config file:', error)
       return {
         success: false,
@@ -105,7 +107,8 @@ export function setupIpcHandlers() {
         success: true,
         message: '配置文件保存成功',
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error saving raw config file:', error)
       return {
         success: false,
@@ -123,6 +126,12 @@ export function setupIpcHandlers() {
   // Handler for canceling shutdown
   ipcMain.handle('cancel-shutdown', () => {
     cancelShutdown()
+    return { success: true }
+  })
+
+  // Handler for manually triggering shutdown confirmation window
+  ipcMain.handle('trigger-shutdown-window', () => {
+    createShutdownWindow()
     return { success: true }
   })
 }

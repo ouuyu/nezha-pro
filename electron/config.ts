@@ -25,6 +25,18 @@ const defaultConfig = {
   cloudKnowledgeSources: [] as any[],
   autoSyncEnabled: false,
   syncInterval: 60,
+  shutdownBackground: {
+    type: 'css',
+    cssEffect: 'aurora',
+    opacity: 0.8,
+    speed: 1,
+    colors: ['#7877c6', '#4f46e5', '#06b6d4'],
+  },
+  shutdownStats: {
+    totalScheduled: 0,
+    totalCanceled: 0,
+    lastShutdown: '从未',
+  },
 }
 
 // Store sync times for built-in sources in memory
@@ -70,6 +82,14 @@ export function ensureConfigFile() {
       }
       if (!('syncInterval' in config)) {
         config.syncInterval = 60
+        changed = true
+      }
+      if (!('shutdownBackground' in config)) {
+        config.shutdownBackground = defaultConfig.shutdownBackground
+        changed = true
+      }
+      if (!('shutdownStats' in config)) {
+        config.shutdownStats = defaultConfig.shutdownStats
         changed = true
       }
       if (changed) {

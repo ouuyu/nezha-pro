@@ -70,12 +70,11 @@ export function createShutdownWindow() {
     fullscreen: true,
     frame: false,
     alwaysOnTop: true,
-    skipTaskbar: true,
     resizable: false,
     movable: false,
     minimizable: false,
     maximizable: false,
-    closable: false,
+    closable: true,
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true,
@@ -90,11 +89,6 @@ export function createShutdownWindow() {
   else {
     shutdownWindow.loadFile('dist/index.html', { hash: 'shutdown-confirm' })
   }
-
-  // 阻止窗口关闭
-  shutdownWindow.on('close', (event) => {
-    event.preventDefault()
-  })
 
   // 窗口关闭时清理
   shutdownWindow.on('closed', () => {

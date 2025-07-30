@@ -132,6 +132,31 @@ export interface BatchDeleteResult {
   deletedCount: number
 }
 
+// ==================== 背景配置相关接口 ====================
+
+/**
+ * 背景配置
+ */
+export interface BackgroundConfig {
+  type: 'css' | 'video' | 'weather' | 'image'
+  cssEffect?: 'aurora' | 'gradient' | 'particles' | 'waves' | 'matrix'
+  videoUrl?: string
+  imageUrl?: string
+  weatherLocation?: string
+  opacity?: number
+  speed?: number
+  colors?: string[]
+}
+
+/**
+ * 关机统计信息
+ */
+export interface ShutdownStats {
+  totalScheduled: number
+  totalCanceled: number
+  lastShutdown: string
+}
+
 // ==================== 应用配置相关接口 ====================
 
 /**
@@ -143,6 +168,8 @@ export interface AppConfig {
   cloudKnowledgeSources: CloudKnowledgeSource[]
   autoSyncEnabled: boolean
   syncInterval: number
+  shutdownBackground?: BackgroundConfig
+  shutdownStats?: ShutdownStats
 }
 
 /**
