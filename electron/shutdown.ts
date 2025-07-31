@@ -70,6 +70,8 @@ export function createShutdownWindow() {
     fullscreen: true,
     frame: false,
     alwaysOnTop: true,
+    transparent: true,
+    hasShadow: false,
     resizable: false,
     movable: false,
     minimizable: false,
@@ -80,6 +82,13 @@ export function createShutdownWindow() {
       nodeIntegration: true,
     },
   })
+
+  // 设置窗口背景和透明度
+  shutdownWindow.setBackgroundColor('#00000000')
+  shutdownWindow.setOpacity(1.0)
+
+  // 启用硬件加速
+  shutdownWindow.setBackgroundColor('#00000000')
 
   // 加载关机确认页面
   const isDev = process.env.VITE_DEV_SERVER_URL
@@ -101,6 +110,8 @@ export function createShutdownWindow() {
 // Close shutdown window
 export function closeShutdownWindow() {
   if (shutdownWindow) {
+    // 添加窗口关闭动画
+    shutdownWindow.hide()
     shutdownWindow.removeAllListeners('close')
     shutdownWindow.close()
     shutdownWindow = null

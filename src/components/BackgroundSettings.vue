@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { BackgroundConfig } from '../types/interfaces'
-import { Delete, Plus } from '@element-plus/icons-vue' // 导入图标
+import { Delete, Plus } from '@element-plus/icons-vue'
 import { ElButton, ElCard, ElColorPicker, ElFormItem, ElMessage, ElOption, ElSelect, ElSlider } from 'element-plus'
 import { onMounted, ref, watch } from 'vue'
 import { getConfig, saveConfig } from '../utils/ipc'
@@ -78,7 +78,7 @@ onMounted(loadConfig)
 
       <ElFormItem label="背景颜色">
         <div class="color-picker-group">
-          <div v-for="(color, i) in config.colors" :key="i" class="color-picker-wrapper">
+          <div v-for="(_, i) in config.colors" :key="i" class="color-picker-wrapper">
             <ElColorPicker v-model="config.colors[i]" size="default" />
             <ElButton v-if="config.colors.length > 1" class="delete-btn" :icon="Delete" circle text type="danger" @click="removeColor(i)" />
           </div>
