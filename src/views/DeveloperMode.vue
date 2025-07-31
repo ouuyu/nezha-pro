@@ -8,7 +8,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
 import MonacoEditor from '../components/MonacoEditor.vue'
-import { getDeveloperInfo, getRawConfig, saveRawConfig, triggerShutdownWindow } from '../utils/ipc'
+import { getDeveloperInfo, getRawConfig, saveRawConfig, triggerShutdownWindow } from '../utils/ipc/'
 
 const loading = ref(false)
 const developerInfo = ref<any>({})

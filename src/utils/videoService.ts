@@ -64,12 +64,10 @@ export class VideoService {
 
       const videos: RemoteVideoInfo[] = []
 
-      contents.forEach((content, index) => {
+      contents.forEach((content, _) => {
         const key = content.querySelector('Key')?.textContent
         const size = content.querySelector('Size')?.textContent
         const lastModified = content.querySelector('LastModified')?.textContent
-
-        console.log(`处理第${index + 1}个文件:`, { key, size, lastModified })
 
         // 只处理视频文件
         if (key && this.isVideoFile(key)) {

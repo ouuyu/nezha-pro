@@ -3,7 +3,7 @@ import type { ShutdownTime } from '../types/interfaces'
 import { Calendar, Check, Clock, Delete, Edit, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { getConfig, saveConfig as saveConfigIpc } from '../utils/ipc'
+import { getConfig, saveConfig as saveConfigIpc } from '../utils/ipc/'
 
 const editingIndex = ref<number | null>(null)
 

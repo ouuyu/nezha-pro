@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { BackgroundConfig, LocalVideoInfo } from '../types/interfaces'
-import { ElButton, ElCard, ElDivider, ElForm, ElFormItem, ElMessage, ElRadio, ElRadioGroup } from 'element-plus'
+import { ElButton, ElCard, ElDivider, ElForm, ElFormItem, ElMessage, ElRadio, ElRadioGroup, ElSlider } from 'element-plus'
 import { onMounted, ref, watch } from 'vue'
-import { getConfig, saveConfig } from '../utils/ipc'
+import { getConfig, saveConfig } from '../utils/ipc/'
 import CssManager from './background/CssManager.vue'
 import VideoManager from './background/VideoManager.vue'
 
-// 背景配置响应式引用
 const backgroundConfig = ref<BackgroundConfig>({
   type: 'css',
   cssEffect: 'aurora',
@@ -15,27 +14,21 @@ const backgroundConfig = ref<BackgroundConfig>({
   colors: ['#7877c6', '#4f46e5', '#06b6d4'],
 })
 
-// 加载状态
 const isLoading = ref(false)
-// 防抖计时器
 let debounceTimer: number | undefined
 
-// 视频管理相关状态
 const selectedVideoKey = ref<string>('')
 
-// 背景类型选项
 const backgroundTypeOptions = [
   { label: 'CSS动效', value: 'css' },
   { label: '视频背景', value: 'video' },
 ]
 
-// 加载配置
 async function loadConfig() {
   isLoading.value = true
   try {
     const result = await getConfig({ silent: true })
     if (result.success && result.data?.shutdownBackground) {
-      // 合并加载的配置，避免覆盖默认值
       backgroundConfig.value = { ...backgroundConfig.value, ...result.data.shutdownBackground }
     }
   }
@@ -48,13 +41,11 @@ async function loadConfig() {
   }
 }
 
-// 保存配置
 async function saveBackgroundConfig(silent = false) {
   isLoading.value = true
   try {
     const result = await getConfig({ silent: true })
     const currentConfig = result.success ? result.data : {}
-    // 更新 shutdownBackground 部分
     const newConfig = { ...currentConfig, shutdownBackground: backgroundConfig.value }
     const saveResult = await saveConfig(newConfig, { silent: true })
 
@@ -77,7 +68,6 @@ async function saveBackgroundConfig(silent = false) {
   }
 }
 
-// 重置为默认配置
 function resetToDefault() {
   backgroundConfig.value = {
     type: 'css',
@@ -89,9 +79,6 @@ function resetToDefault() {
   ElMessage.success('已重置为默认配置')
 }
 
-// ==================== 视频管理相关方法 ====================
-
-// 选择视频作为背景的回调
 function selectVideo(video: LocalVideoInfo) {
   backgroundConfig.value.type = 'video'
   backgroundConfig.value.videoPath = video.path
@@ -99,33 +86,29 @@ function selectVideo(video: LocalVideoInfo) {
   ElMessage.success(`已选择视频：${video.displayName}`)
 }
 
-// 删除视频后的处理
 function handleVideoDeleted(videoKey: string) {
-  // 如果删除的是当前选中的视频，清空选择
   if (backgroundConfig.value.videoPath?.includes(videoKey)) {
     backgroundConfig.value.videoPath = ''
-    backgroundConfig.value.type = 'css' // 切换回CSS背景
+    backgroundConfig.value.type = 'css'
     selectedVideoKey.value = ''
   }
 }
 
-// 深度监听 backgroundConfig 变化并防抖保存
 watch(backgroundConfig, () => {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
-    saveBackgroundConfig(true) // 静默保存
+    saveBackgroundConfig(true)
   }, 1000)
 }, { deep: true })
 
-// 组件挂载时加载配置
 onMounted(() => {
   loadConfig()
 })
 </script>
 
 <template>
-  <div class="background-settings-modern">
-    <ElCard class="settings-card" shadow="never">
+  <div class="m-auto max-w-800px">
+    <ElCard class="border-none" shadow="never">
       <template #header>
         <div class="flex items-center justify-between">
           <h3 class="text-xl font-semibold">
@@ -180,22 +163,3 @@ onMounted(() => {
     </ElCard>
   </div>
 </template>
-
-<style scoped>
-.background-settings-modern {
-  max-width: 800px;
-  margin: auto;
-}
-
-.settings-card {
-  border: none;
-}
-
-.el-form--label-top .el-form-item {
-  margin-bottom: 0;
-}
-
-.mt-8 {
-  margin-top: 2rem;
-}
-</style>

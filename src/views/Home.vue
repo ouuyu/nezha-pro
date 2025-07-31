@@ -2,7 +2,7 @@
 import { ElButton, ElCard, ElCol, ElIcon, ElRow, ElStatistic, ElTabPane, ElTabs } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import BackgroundSettings from '../components/BackgroundSettings.vue'
-import { getConfig } from '../utils/ipc'
+import { getConfig } from '../utils/ipc/'
 
 const activeTab = ref('dashboard')
 const systemInfo = ref({

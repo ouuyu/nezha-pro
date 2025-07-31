@@ -2,7 +2,7 @@
 import type { BackgroundConfig } from '../types/interfaces'
 import { onMounted, ref } from 'vue'
 import BackgroundEffect from '../components/BackgroundEffect.vue'
-import { getConfig } from '../utils/ipc'
+import { getConfig } from '../utils/ipc/'
 
 // 背景配置
 const backgroundConfig = ref<BackgroundConfig>({

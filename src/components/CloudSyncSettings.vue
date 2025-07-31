@@ -2,7 +2,7 @@
 import type { CloudKnowledgeSource } from '../types/interfaces'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
-import { getConfig, saveConfig } from '../utils/ipc'
+import { getConfig, saveConfig } from '../utils/ipc/'
 
 const sourceDialogVisible = ref(false)
 const editSourceIndex = ref<number | null>(null)
