@@ -29,17 +29,17 @@ const activeEffectComponent = computed(() => {
     case 'matrix':
       return MatrixEffect
     case 'gradient':
-    case 'waves': // 将'waves'也映射到新的融合效果
+    case 'waves':
       return GradientWavesEffect
     default:
-      return AuroraEffect // 默认效果
+      return AuroraEffect
   }
 })
 </script>
 
 <template>
   <div class="dynamic-background-wrapper">
-    <component :is="activeEffectComponent" :config="config" />
+    <component :is="activeEffectComponent" :config="props.config" />
   </div>
 </template>
 

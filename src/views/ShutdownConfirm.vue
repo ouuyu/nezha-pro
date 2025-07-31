@@ -13,6 +13,8 @@ const backgroundConfig = ref<BackgroundConfig>({
   colors: ['#7877c6', '#4f46e5', '#06b6d4'],
 })
 
+const isConfigLoaded = ref(false)
+
 // 加载配置
 async function loadBackgroundConfig() {
   try {
@@ -24,6 +26,9 @@ async function loadBackgroundConfig() {
   catch (error) {
     console.warn('Failed to load background config:', error)
   }
+  finally {
+    isConfigLoaded.value = true
+  }
 }
 
 onMounted(async () => {
@@ -32,11 +37,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-9999 flex select-none items-center justify-center overflow-hidden text-white font-sans">
-    <!-- 动态背景 -->
+  <div class="background">
     <BackgroundEffect
+      v-if="isConfigLoaded"
       :config="backgroundConfig"
     />
+    <div v-else class="absolute inset-0 bg-black" />
   </div>
 </template>
 
@@ -57,5 +63,14 @@ onMounted(async () => {
   -khtml-user-drag: none;
   -moz-user-drag: none;
   -o-user-drag: none;
+}
+
+background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
 }
 </style>

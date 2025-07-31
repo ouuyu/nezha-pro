@@ -4,7 +4,6 @@ import { ElButton, ElCard, ElColorPicker, ElDivider, ElForm, ElFormItem, ElMessa
 import { onMounted, ref, watch } from 'vue'
 import { getConfig, saveConfig } from '../utils/ipc'
 
-// 背景配置响应式引用 (已精简)
 const backgroundConfig = ref<BackgroundConfig>({
   type: 'css',
   cssEffect: 'aurora',
@@ -21,7 +20,6 @@ const cssEffectOptions = [
   { label: '极光效果', value: 'aurora' },
   { label: '渐变效果', value: 'gradient' },
   { label: '粒子效果', value: 'particles' },
-  { label: '波浪效果', value: 'waves' },
   { label: '矩阵效果', value: 'matrix' },
 ]
 
@@ -123,11 +121,10 @@ function removeColor(index: number) {
   }
 }
 
-// 监听配置变化，实现防抖自动保存
 watch(backgroundConfig, () => {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => {
-    saveBackgroundConfig(true) // 静默保存
+    saveBackgroundConfig(true)
   }, 1000)
 }, { deep: true })
 
@@ -145,7 +142,7 @@ onMounted(() => {
             关机页背景设置
           </h3>
           <div class="flex gap-2">
-            <ElButton type="primary" :loading="isLoading" @click="() => saveBackgroundConfig(false)">
+            <ElButton type="primary" @click="() => saveBackgroundConfig(false)">
               保存配置
             </ElButton>
             <ElButton @click="resetToDefault">
@@ -155,23 +152,38 @@ onMounted(() => {
         </div>
       </template>
 
-      <ElForm :model="backgroundConfig" label-position="top">
+      <ElForm :model="backgroundConfig" label-position="top" class="space-y-6">
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <ElFormItem label="效果类型">
+          <ElFormItem label="效果类型" class="mb-0">
             <ElSelect v-model="backgroundConfig.cssEffect" placeholder="选择CSS效果" class="w-full">
               <ElOption v-for="option in cssEffectOptions" :key="option.value" :label="option.label" :value="option.value" />
             </ElSelect>
           </ElFormItem>
-          <ElFormItem label="颜色配置">
-            <div class="w-full flex flex-col gap-3">
-              <div v-for="(_, index) in backgroundConfig.colors" :key="index" class="flex items-center gap-3">
-                <ElColorPicker v-model="backgroundConfig.colors![index]" />
-                <span class="text-sm text-gray-500">颜色 {{ index + 1 }}</span>
-                <ElButton v-if="backgroundConfig.colors!.length > 1" type="danger" text @click="removeColor(index)">
+          <ElFormItem label="颜色配置" class="mb-0">
+            <div class="w-full space-y-4">
+              <div v-for="(_, index) in backgroundConfig.colors" :key="index" class="flex items-center gap-4">
+                <ElColorPicker v-model="backgroundConfig.colors![index]" size="large" />
+                <div class="min-w-0 flex-1">
+                  <span class="text-sm text-gray-600 font-medium">颜色 {{ index + 1 }}</span>
+                </div>
+                <ElButton
+                  v-if="backgroundConfig.colors!.length > 1"
+                  type="danger"
+                  text
+                  size="small"
+                  @click="removeColor(index)"
+                >
                   移除
                 </ElButton>
               </div>
-              <ElButton type="primary" text class="self-start" @click="addColor">
+              <ElButton
+                type="primary"
+                text
+                class="w-full md:w-auto"
+                size="small"
+                @click="addColor"
+              >
+                <span class="i-carbon-add mr-1 inline-block" />
                 添加颜色
               </ElButton>
             </div>
@@ -249,10 +261,16 @@ onMounted(() => {
 }
 
 .el-form--label-top .el-form-item {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .mt-8 {
   margin-top: 2rem;
+}
+
+.el-color-picker {
+  border: none;
+  --el-color-picker-width: 40px;
+  --el-color-picker-height: 40px;
 }
 </style>

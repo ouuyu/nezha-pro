@@ -30,21 +30,20 @@ let animationFrameId: number
 
 function animate() {
   layers.value.forEach((layer) => {
-    const deltaX = (Math.random() - 0.5) * 60
-    const deltaY = (Math.random() - 0.5) * 60
+    const deltaX = (Math.random() - 0.5) * 0.5
+    const deltaY = (Math.random() - 0.5) * 0.5
     layer.x = (layer.x + deltaX) % 100
     layer.y = (layer.y + deltaY) % 100
 
-    const deltaScale = (Math.random() - 0.5) * 0.3
+    const deltaScale = (Math.random() - 0.5) * 0.01
     layer.scale = Math.max(0.5, Math.min(1.5, layer.scale + deltaScale))
 
-    const deltaOpacity = (Math.random() - 0.5) * 0.2
+    const deltaOpacity = (Math.random() - 0.5) * 0.01
     layer.opacity = Math.max(0.3, Math.min(0.9, layer.opacity + deltaOpacity))
   })
 
-  animationFrameId = requestAnimationFrame(animate)
   setTimeout(() => {
-    cancelAnimationFrame(animationFrameId)
+    animationFrameId = requestAnimationFrame(animate)
   }, 33 / (props.config.speed || 1))
 }
 
