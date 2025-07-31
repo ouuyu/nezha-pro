@@ -1,165 +1,140 @@
 <script setup lang="ts">
-import type { BackgroundConfig, LocalVideoInfo } from '../types/interfaces'
-import { ElButton, ElCard, ElDivider, ElForm, ElFormItem, ElMessage, ElRadio, ElRadioGroup, ElSlider } from 'element-plus'
+import type { BackgroundConfig } from '../types/interfaces'
+import { Delete, Plus } from '@element-plus/icons-vue' // 导入图标
+import { ElButton, ElCard, ElColorPicker, ElFormItem, ElMessage, ElOption, ElSelect, ElSlider } from 'element-plus'
 import { onMounted, ref, watch } from 'vue'
-import { getConfig, saveConfig } from '../utils/ipc/'
-import CssManager from './background/CssManager.vue'
-import VideoManager from './background/VideoManager.vue'
+import { getConfig, saveConfig } from '../utils/ipc'
 
-const backgroundConfig = ref<BackgroundConfig>({
+const defaultConfig: BackgroundConfig = {
   type: 'css',
   cssEffect: 'aurora',
   opacity: 0.8,
   speed: 1,
   colors: ['#7877c6', '#4f46e5', '#06b6d4'],
-})
+}
 
-const isLoading = ref(false)
-let debounceTimer: number | undefined
-
-const selectedVideoKey = ref<string>('')
-
-const backgroundTypeOptions = [
-  { label: 'CSS动效', value: 'css' },
-  { label: '视频背景', value: 'video' },
+const presets = [
+  { name: '经典极光', config: defaultConfig },
+  { name: '科技矩阵', config: { ...defaultConfig, cssEffect: 'matrix', opacity: 0.6, speed: 1.5, colors: ['#00ff00'] } },
+  { name: '粒子星空', config: { ...defaultConfig, cssEffect: 'particles', opacity: 0.7, speed: 0.8, colors: ['#7877c6', '#4f46e5'] } },
+  { name: '彩虹渐变', config: { ...defaultConfig, cssEffect: 'gradient', opacity: 0.9, speed: 2, colors: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'] } },
 ]
 
+const config = ref<BackgroundConfig>({ ...defaultConfig })
+
 async function loadConfig() {
-  isLoading.value = true
-  try {
-    const result = await getConfig({ silent: true })
-    if (result.success && result.data?.shutdownBackground) {
-      backgroundConfig.value = { ...backgroundConfig.value, ...result.data.shutdownBackground }
-    }
-  }
-  catch (error) {
-    console.error('Failed to load background config:', error)
-    ElMessage.error('加载配置失败')
-  }
-  finally {
-    isLoading.value = false
-  }
+  const res = await getConfig({ silent: true })
+  if (res?.success && res.data?.shutdownBackground)
+    Object.assign(config.value, res.data.shutdownBackground)
 }
 
-async function saveBackgroundConfig(silent = false) {
-  isLoading.value = true
-  try {
-    const result = await getConfig({ silent: true })
-    const currentConfig = result.success ? result.data : {}
-    const newConfig = { ...currentConfig, shutdownBackground: backgroundConfig.value }
-    const saveResult = await saveConfig(newConfig, { silent: true })
-
-    if (saveResult.success) {
-      if (!silent)
-        ElMessage.success('背景配置保存成功')
-    }
-    else {
-      if (!silent)
-        ElMessage.error('保存配置失败')
-    }
-  }
-  catch (error) {
-    console.error('Failed to save background config:', error)
-    if (!silent)
-      ElMessage.error('保存配置失败')
-  }
-  finally {
-    isLoading.value = false
-  }
+async function save() {
+  const res = await getConfig({ silent: true })
+  await saveConfig({ ...res.data, shutdownBackground: config.value }, { silent: true })
 }
 
-function resetToDefault() {
-  backgroundConfig.value = {
-    type: 'css',
-    cssEffect: 'aurora',
-    opacity: 0.8,
-    speed: 1,
-    colors: ['#7877c6', '#4f46e5', '#06b6d4'],
-  }
-  ElMessage.success('已重置为默认配置')
+watch(() => config.value, save, { deep: true })
+
+function resetDefault() {
+  Object.assign(config.value, defaultConfig)
+  save()
+  ElMessage.success('已重置默认')
 }
 
-function selectVideo(video: LocalVideoInfo) {
-  backgroundConfig.value.type = 'video'
-  backgroundConfig.value.videoPath = video.path
-  selectedVideoKey.value = video.key
-  ElMessage.success(`已选择视频：${video.displayName}`)
+function applyPreset(p: typeof presets[0]) {
+  Object.assign(config.value, p.config)
+  save()
+  ElMessage.success(`已应用预设：${p.name}`)
 }
 
-function handleVideoDeleted(videoKey: string) {
-  if (backgroundConfig.value.videoPath?.includes(videoKey)) {
-    backgroundConfig.value.videoPath = ''
-    backgroundConfig.value.type = 'css'
-    selectedVideoKey.value = ''
-  }
-}
+const addColor = () => config.value.colors.push('#ffffff')
+const removeColor = (i: number) => config.value.colors.length > 1 && config.value.colors.splice(i, 1)
 
-watch(backgroundConfig, () => {
-  clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => {
-    saveBackgroundConfig(true)
-  }, 1000)
-}, { deep: true })
-
-onMounted(() => {
-  loadConfig()
-})
+onMounted(loadConfig)
 </script>
 
 <template>
-  <div class="m-auto max-w-800px">
-    <ElCard class="border-none" shadow="never">
+  <div class="mx-auto max-w-3xl p-4">
+    <ElCard shadow="never">
       <template #header>
         <div class="flex items-center justify-between">
-          <h3 class="text-xl font-semibold">
-            关机页背景设置
-          </h3>
-          <div class="flex gap-2">
-            <ElButton type="primary" @click="() => saveBackgroundConfig(false)">
-              保存配置
-            </ElButton>
-            <ElButton @click="resetToDefault">
-              重置为默认
-            </ElButton>
-          </div>
+          <h2 class="text-xl font-semibold">
+            关机背景设置
+          </h2>
+          <ElButton text @click="resetDefault">
+            重置
+          </ElButton>
         </div>
       </template>
 
-      <ElForm :model="backgroundConfig" label-position="top" class="space-y-6">
-        <ElFormItem label="背景类型" class="mb-0">
-          <ElRadioGroup v-model="backgroundConfig.type" class="w-full">
-            <ElRadio v-for="option in backgroundTypeOptions" :key="option.value" :value="option.value" class="mr-4">
-              {{ option.label }}
-            </ElRadio>
-          </ElRadioGroup>
-        </ElFormItem>
+      <ElFormItem label="背景效果">
+        <ElSelect v-model="config.cssEffect">
+          <ElOption label="极光" value="aurora" />
+          <ElOption label="渐变" value="gradient" />
+          <ElOption label="粒子" value="particles" />
+          <ElOption label="矩阵" value="matrix" />
+        </ElSelect>
+      </ElFormItem>
 
-        <CssManager v-if="backgroundConfig.type === 'css'" v-model:config="backgroundConfig" />
-
-        <div v-if="backgroundConfig.type === 'video'" class="space-y-6">
-          <ElDivider content-position="left">
-            视频管理
-          </ElDivider>
-
-          <VideoManager
-            :selected-video-key="selectedVideoKey"
-            @video-selected="selectVideo"
-            @video-deleted="handleVideoDeleted"
-          />
+      <ElFormItem label="背景颜色">
+        <div class="color-picker-group">
+          <div v-for="(color, i) in config.colors" :key="i" class="color-picker-wrapper">
+            <ElColorPicker v-model="config.colors[i]" size="default" />
+            <ElButton v-if="config.colors.length > 1" class="delete-btn" :icon="Delete" circle text type="danger" @click="removeColor(i)" />
+          </div>
+          <ElButton :icon="Plus" text @click="addColor" />
         </div>
+      </ElFormItem>
 
-        <ElDivider content-position="left" class="mt-8">
-          通用设置
-        </ElDivider>
-        <div class="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
-          <ElFormItem label="背景不透明度">
-            <ElSlider v-model="backgroundConfig.opacity" :min="0.1" :max="1" :step="0.05" :format-tooltip="(val: number) => `${Math.round(val * 100)}%`" />
-          </ElFormItem>
-          <ElFormItem label="动画速度">
-            <ElSlider v-model="backgroundConfig.speed" :min="0.1" :max="3" :step="0.1" :format-tooltip="(val: number) => `${val}x`" />
-          </ElFormItem>
+      <ElFormItem label="不透明度">
+        <ElSlider v-model="config.opacity" :min="0.1" :max="1" :step="0.05" />
+      </ElFormItem>
+
+      <ElFormItem label="动画速度">
+        <ElSlider v-model="config.speed" :min="0.1" :max="3" :step="0.1" />
+      </ElFormItem>
+
+      <div class="grid grid-cols-2 mt-6 gap-4 md:grid-cols-4">
+        <div
+          v-for="p in presets"
+          :key="p.name"
+          class="cursor-pointer border rounded p-3 hover:shadow"
+          @click="applyPreset(p)"
+        >
+          <div class="h-12 rounded" :style="{ background: `linear-gradient(45deg, ${p.config.colors.join(',')})` }" />
+          <div class="mt-1 text-center text-sm">
+            {{ p.name }}
+          </div>
         </div>
-      </ElForm>
+      </div>
     </ElCard>
   </div>
 </template>
+
+<style scoped>
+.color-picker-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.color-picker-wrapper {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.delete-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.color-picker-wrapper:hover .delete-btn {
+  visibility: visible;
+  opacity: 1;
+}
+</style>

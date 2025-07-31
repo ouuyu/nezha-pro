@@ -138,15 +138,11 @@ export interface BatchDeleteResult {
  * 背景配置
  */
 export interface BackgroundConfig {
-  type: 'css' | 'video' | 'weather' | 'image'
+  type: 'css'
   cssEffect?: 'aurora' | 'gradient' | 'particles' | 'waves' | 'matrix'
-  videoUrl?: string
-  videoPath?: string // 本地视频文件路径
-  imageUrl?: string
-  weatherLocation?: string
-  opacity?: number
-  speed?: number
-  colors?: string[]
+  colors: string[]
+  opacity: number
+  speed: number
 }
 
 // ==================== 视频管理相关接口 ====================

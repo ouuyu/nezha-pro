@@ -1,5 +1,4 @@
 import type { IpcOptions, IpcResult } from '../../types/interfaces'
-// src/ipc/config-ipc.ts
 import { IpcBase } from './base'
 
 export class ConfigIpc extends IpcBase {
@@ -38,6 +37,14 @@ export class ConfigIpc extends IpcBase {
       showErrorMessage: true,
       successMessage: '配置文件保存成功',
       errorMessage: '保存配置文件失败',
+      ...options,
+    })
+  }
+
+  async getDeveloperInfo(options: IpcOptions = {}): Promise<IpcResult<any>> {
+    return this.invoke('get-developer-info', undefined, {
+      showErrorMessage: true,
+      errorMessage: '获取开发者信息失败',
       ...options,
     })
   }

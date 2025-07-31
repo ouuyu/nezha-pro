@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  Edit,
   FolderOpened,
   InfoFilled,
   Refresh,
@@ -13,7 +12,6 @@ import { getDeveloperInfo, getRawConfig, saveRawConfig, triggerShutdownWindow } 
 const loading = ref(false)
 const developerInfo = ref<any>({})
 
-// 配置文件编辑相关
 const configEditorVisible = ref(false)
 const configContent = ref('')
 const configLoading = ref(false)
@@ -109,14 +107,12 @@ async function openConfigEditor() {
   }
 }
 
-// 保存配置文件
 async function saveConfigFile() {
   if (!editorRef.value) {
     ElMessage.error('编辑器未初始化')
     return
   }
 
-  // 验证JSON格式
   const validation = editorRef.value.validateJson()
   if (!validation.isValid) {
     ElMessage.error(`JSON格式错误: ${validation.error}`)
@@ -159,7 +155,6 @@ async function saveConfigFile() {
   }
 }
 
-// 格式化JSON
 async function formatConfigJson() {
   if (!editorRef.value) {
     ElMessage.error('编辑器未初始化')
@@ -183,13 +178,10 @@ async function formatConfigJson() {
   }
 }
 
-// 关闭编辑器
 function closeConfigEditor() {
   configEditorVisible.value = false
   configContent.value = ''
 }
-
-// 手动唤起关机倒计时窗口
 async function handleTriggerShutdownWindow() {
   try {
     await triggerShutdownWindow({
@@ -267,16 +259,10 @@ onMounted(() => {
     </el-card>
     <div class="flex gap-3">
       <el-button type="primary" @click="openConfigEditor">
-        <el-icon class="mr-1">
-          <Edit />
-        </el-icon>
         编辑配置文件
       </el-button>
 
       <el-button type="warning" @click="handleTriggerShutdownWindow">
-        <el-icon class="mr-1">
-          <i class="i-carbon-power" />
-        </el-icon>
         测试关机倒计时
       </el-button>
     </div>

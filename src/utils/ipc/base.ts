@@ -1,4 +1,3 @@
-// src/ipc/ipc-base.ts
 import type { IpcOptions, IpcResult } from '../../types/interfaces'
 import { ElMessage } from 'element-plus'
 

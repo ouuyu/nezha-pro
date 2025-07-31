@@ -4,21 +4,16 @@ import { ElAutoResizer, ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElMessa
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { getConfig, saveConfig } from '../utils/ipc/'
 
-// props 和 emits
 const props = defineProps<KnowledgeManagementProps>()
 const emit = defineEmits<KnowledgeManagementEmits>()
 
-// 核心状态
 const isLoading = ref(true)
 const knowledgeBase = ref<KnowledgeItem[]>([])
-
-// 表单和弹窗状态
 const dialogVisible = ref(false)
 const formRef = ref()
 const form = ref({ author: '', source: '', content: '' })
-const editIndex = ref<number | null>(null) // null 表示新增，否则为编辑
+const editIndex = ref<number | null>(null)
 
-// 批量删除状态
 const batchDeleteDialogVisible = ref(false)
 const batchDeleteLoading = ref(false)
 const selectedDeleteType = ref<'bySource' | 'all'>('bySource')
@@ -29,7 +24,6 @@ const rules = {
   content: [{ required: true, message: '请输入知识内容', trigger: 'blur' }],
 }
 
-// 计算属性：可用的云端数据源
 const availableCloudSources = computed(() => {
   const sources = new Map<string, { id: string, name: string, count: number }>()
   knowledgeBase.value.forEach((item) => {
@@ -44,18 +38,15 @@ const availableCloudSources = computed(() => {
   return Array.from(sources.values())
 })
 
-// 计算属性：云端数据总数
 const totalCloudCount = computed(() => {
   return knowledgeBase.value.filter(item => item.dataSource === 'cloud').length
 })
 
-// 监听同步加载状态
 watch(() => props.syncLoading, (newVal, oldVal) => {
   if (oldVal && !newVal)
     loadKnowledgeBase()
 })
 
-// 表格列定义
 const columns = [
   { key: 'author', title: '作者', dataKey: 'author', width: 120, align: 'left' as const },
   { key: 'source', title: '出处', dataKey: 'source', width: 180, align: 'left' as const },
@@ -68,11 +59,7 @@ const columns = [
     align: 'center' as const,
     cellRenderer: ({ rowData }: { rowData: KnowledgeItem }) =>
       h('div', { class: 'flex flex-col items-center justify-center' }, [
-        h(ElTag, { type: rowData.dataSource === 'cloud' ? 'info' : 'success', size: 'small' }, () =>
-          rowData.dataSource === 'cloud' ? '云端' : '本地'),
-        rowData.dataSource === 'cloud' && rowData.sourceName
-          ? h('div', { class: 'mt-1 text-xs text-gray-500' }, rowData.sourceName)
-          : null,
+        h(ElTag, { type: rowData.dataSource === 'cloud' ? 'info' : 'success', size: 'small' }, () => rowData.dataSource === 'cloud' ? '云端' : '本地'),
       ]),
   },
   {
@@ -89,7 +76,6 @@ const columns = [
   },
 ]
 
-// 加载/刷新知识库数据
 async function loadKnowledgeBase() {
   isLoading.value = true
   try {
@@ -102,37 +88,21 @@ async function loadKnowledgeBase() {
   }
 }
 
-// 更新知识库数据到配置
 async function updateKnowledgeBase() {
   const configResult = await getConfig({ silent: true })
   if (!configResult.success || !configResult.data)
     return
-
   const config = { ...configResult.data, knowledgeBase: knowledgeBase.value }
   await saveConfig(config, { showErrorMessage: true, errorMessage: '保存失败' })
 }
 
-// 打开新增或编辑对话框
 function openDialog(index: number | null = null) {
   editIndex.value = index
-  if (index === null) {
-    // 新增
-    form.value = { author: '', source: '', content: '' }
-  }
-  else {
-    // 编辑
-    const item = knowledgeBase.value[index]
-    if (item.dataSource === 'cloud') {
-      ElMessage.error('云端词条不允许编辑')
-      return
-    }
-    form.value = { ...item }
-  }
+  form.value = index === null ? { author: '', source: '', content: '' } : { ...knowledgeBase.value[index] }
   dialogVisible.value = true
   formRef.value?.clearValidate()
 }
 
-// 保存知识
 async function saveKnowledge() {
   try {
     await formRef.value.validate()
@@ -148,11 +118,9 @@ async function saveKnowledge() {
     await updateKnowledgeBase()
   }
   catch {
-    // 验证失败时 ElForm 会自动提示
   }
 }
 
-// 确认删除单个条目
 async function confirmDelete(index: number) {
   try {
     await ElMessageBox.confirm('确定要删除这条知识吗？', '删除确认', { type: 'warning' })
@@ -160,11 +128,9 @@ async function confirmDelete(index: number) {
     await updateKnowledgeBase()
   }
   catch {
-    // 用户取消操作，无需处理
   }
 }
 
-// 打开批量删除对话框
 function openBatchDeleteDialog() {
   if (totalCloudCount.value === 0) {
     ElMessage.warning('没有云端数据可以删除')
@@ -175,14 +141,12 @@ function openBatchDeleteDialog() {
   batchDeleteDialogVisible.value = true
 }
 
-// 执行批量删除
 async function executeBatchDelete() {
   try {
     await ElMessageBox.confirm('确定要删除吗？此操作不可撤销。', '批量删除确认', {
       confirmButtonText: '确定删除',
       type: 'warning',
     })
-
     batchDeleteLoading.value = true
     const ipc = window.require('electron').ipcRenderer
     const result = selectedDeleteType.value === 'all'
@@ -197,17 +161,13 @@ async function executeBatchDelete() {
       ElMessage.error(`删除失败：${result.message}`)
     }
   }
-  catch (error) {
-    // 捕获用户取消操作或真实错误
-    if (error !== 'cancel')
-      ElMessage.error('删除操作失败，请重试')
+  catch {
   }
   finally {
     batchDeleteLoading.value = false
   }
 }
 
-// 组件挂载时加载数据
 onMounted(loadKnowledgeBase)
 </script>
 
@@ -219,10 +179,10 @@ onMounted(loadKnowledgeBase)
       </h2>
       <div class="flex items-center gap-2">
         <ElButton :loading="isLoading" @click="loadKnowledgeBase">
-          {{ isLoading ? '刷新中...' : '刷新' }}
+          刷新
         </ElButton>
-        <ElButton :loading="syncLoading" @click="emit('syncFromCloud')">
-          {{ syncLoading ? '同步中...' : '云端同步' }}
+        <ElButton :loading="props.syncLoading" @click="emit('syncFromCloud')">
+          云端同步
         </ElButton>
         <ElButton type="danger" plain :disabled="totalCloudCount === 0" @click="openBatchDeleteDialog">
           批量删除
@@ -242,7 +202,6 @@ onMounted(loadKnowledgeBase)
             :columns="columns"
             :width="width"
             :height="height"
-            :tooltip-options="{ placement: 'top' }"
             fixed
           />
         </template>
@@ -303,7 +262,7 @@ onMounted(loadKnowledgeBase)
         取消
       </ElButton>
       <ElButton type="danger" :loading="batchDeleteLoading" @click="executeBatchDelete">
-        {{ batchDeleteLoading ? '删除中...' : '确认删除' }}
+        确认删除
       </ElButton>
     </template>
   </ElDialog>

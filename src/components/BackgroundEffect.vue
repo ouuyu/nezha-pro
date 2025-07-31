@@ -2,14 +2,11 @@
 import type { BackgroundConfig } from '../types/interfaces'
 import { computed } from 'vue'
 
-// 导入所有效果组件
 import AuroraEffect from './effects/AuroraEffect.vue'
 import GradientWavesEffect from './effects/GradientWavesEffect.vue'
 import MatrixEffect from './effects/MatrixEffect.vue'
 import ParticlesEffect from './effects/ParticlesEffect.vue'
-import VideoBackground from './effects/VideoBackground.vue'
 
-// 接收配置
 const props = withDefaults(defineProps<{ config?: BackgroundConfig }>(), {
   config: () => ({
     type: 'css',
@@ -20,14 +17,7 @@ const props = withDefaults(defineProps<{ config?: BackgroundConfig }>(), {
   }),
 })
 
-// 根据 config.type 和 config.cssEffect 动态计算要渲染的组件
 const activeEffectComponent = computed(() => {
-  // 如果是视频类型，返回视频背景组件
-  if (props.config.type === 'video') {
-    return VideoBackground
-  }
-
-  // CSS效果类型
   switch (props.config.cssEffect) {
     case 'aurora':
       return AuroraEffect
@@ -55,6 +45,6 @@ const activeEffectComponent = computed(() => {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background-color: #000; /* 提供一个黑色基底 */
+  background-color: #000;
 }
 </style>
