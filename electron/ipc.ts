@@ -5,6 +5,7 @@ import { restartAutoSync } from './autoSync'
 import { deleteAllCloudData, deleteCloudDataBySource, syncAllCloudSources, syncCloudKnowledgeSource } from './cloudSync'
 import { getConfig, getConfigPath, saveConfig } from './config'
 import { cancelShutdown, createShutdownWindow, executeSystemShutdown, scheduleShutdowns } from './shutdown'
+import { videoManager } from './videoManager'
 
 // Set up IPC handlers
 export function setupIpcHandlers() {
@@ -133,5 +134,112 @@ export function setupIpcHandlers() {
   ipcMain.handle('trigger-shutdown-window', () => {
     createShutdownWindow()
     return { success: true }
+  })
+
+  // ==================== 视频管理相关处理器 ====================
+
+  // Handler for getting local videos
+  ipcMain.handle('get-local-videos', () => {
+    try {
+      const videos = videoManager.getLocalVideos()
+      return {
+        success: true,
+        data: videos,
+      }
+    }
+    catch (error) {
+      console.error('Error getting local videos:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '获取本地视频失败',
+      }
+    }
+  })
+
+  // Handler for starting video download
+  ipcMain.handle('start-video-download', async (_event, videoInfo) => {
+    try {
+      const result = await videoManager.startDownload(videoInfo)
+      return result
+    }
+    catch (error) {
+      console.error('Error starting video download:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '开始下载失败',
+      }
+    }
+  })
+
+  // Handler for pausing video download
+  ipcMain.handle('pause-video-download', (_event, taskId: string) => {
+    try {
+      const success = videoManager.pauseDownload(taskId)
+      return {
+        success,
+        message: success ? '下载已暂停' : '暂停失败',
+      }
+    }
+    catch (error) {
+      console.error('Error pausing video download:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '暂停下载失败',
+      }
+    }
+  })
+
+  // Handler for canceling video download
+  ipcMain.handle('cancel-video-download', (_event, taskId: string) => {
+    try {
+      const success = videoManager.cancelDownload(taskId)
+      return {
+        success,
+        message: success ? '下载已取消' : '取消失败',
+      }
+    }
+    catch (error) {
+      console.error('Error canceling video download:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '取消下载失败',
+      }
+    }
+  })
+
+  // Handler for deleting local video
+  ipcMain.handle('delete-local-video', (_event, videoKey: string) => {
+    try {
+      const success = videoManager.deleteLocalVideo(videoKey)
+      return {
+        success,
+        message: success ? '视频已删除' : '删除失败',
+      }
+    }
+    catch (error) {
+      console.error('Error deleting local video:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '删除视频失败',
+      }
+    }
+  })
+
+  // Handler for getting download tasks
+  ipcMain.handle('get-download-tasks', () => {
+    try {
+      const tasks = videoManager.getDownloadTasks()
+      return {
+        success: true,
+        data: tasks,
+      }
+    }
+    catch (error) {
+      console.error('Error getting download tasks:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : '获取下载任务失败',
+      }
+    }
   })
 }

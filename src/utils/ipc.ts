@@ -1,4 +1,4 @@
-import type { IpcOptions, IpcResult } from '../types/interfaces'
+import type { IpcOptions, IpcResult, LocalVideoInfo, RemoteVideoInfo, VideoDownloadTask } from '../types/interfaces'
 import { ElMessage } from 'element-plus'
 
 function deepClone<T>(obj: T): T {
@@ -167,6 +167,64 @@ class IpcManager {
       ...options,
     })
   }
+
+  // ==================== 视频管理相关方法 ====================
+
+  async getLocalVideos(options: IpcOptions = {}): Promise<IpcResult<LocalVideoInfo[]>> {
+    return this.invoke<LocalVideoInfo[]>('get-local-videos', undefined, {
+      showErrorMessage: true,
+      errorMessage: '获取本地视频失败',
+      ...options,
+    })
+  }
+
+  async startVideoDownload(videoInfo: RemoteVideoInfo, options: IpcOptions = {}): Promise<IpcResult<{ taskId: string }>> {
+    return this.invoke<{ taskId: string }>('start-video-download', videoInfo, {
+      showSuccessMessage: true,
+      showErrorMessage: true,
+      successMessage: '开始下载视频',
+      errorMessage: '开始下载失败',
+      ...options,
+    })
+  }
+
+  async pauseVideoDownload(taskId: string, options: IpcOptions = {}): Promise<IpcResult<boolean>> {
+    return this.invoke<boolean>('pause-video-download', taskId, {
+      showSuccessMessage: true,
+      showErrorMessage: true,
+      successMessage: '下载已暂停',
+      errorMessage: '暂停下载失败',
+      ...options,
+    })
+  }
+
+  async cancelVideoDownload(taskId: string, options: IpcOptions = {}): Promise<IpcResult<boolean>> {
+    return this.invoke<boolean>('cancel-video-download', taskId, {
+      showSuccessMessage: true,
+      showErrorMessage: true,
+      successMessage: '下载已取消',
+      errorMessage: '取消下载失败',
+      ...options,
+    })
+  }
+
+  async deleteLocalVideo(videoKey: string, options: IpcOptions = {}): Promise<IpcResult<boolean>> {
+    return this.invoke<boolean>('delete-local-video', videoKey, {
+      showSuccessMessage: true,
+      showErrorMessage: true,
+      successMessage: '视频已删除',
+      errorMessage: '删除视频失败',
+      ...options,
+    })
+  }
+
+  async getDownloadTasks(options: IpcOptions = {}): Promise<IpcResult<VideoDownloadTask[]>> {
+    return this.invoke<VideoDownloadTask[]>('get-download-tasks', undefined, {
+      showErrorMessage: true,
+      errorMessage: '获取下载任务失败',
+      ...options,
+    })
+  }
 }
 
 const ipcManager = new IpcManager()
@@ -183,3 +241,11 @@ export const saveRawConfig = ipcManager.saveRawConfig.bind(ipcManager)
 export const executeShutdown = ipcManager.executeShutdown.bind(ipcManager)
 export const cancelShutdown = ipcManager.cancelShutdown.bind(ipcManager)
 export const triggerShutdownWindow = ipcManager.triggerShutdownWindow.bind(ipcManager)
+
+// 视频管理相关导出
+export const getLocalVideos = ipcManager.getLocalVideos.bind(ipcManager)
+export const startVideoDownload = ipcManager.startVideoDownload.bind(ipcManager)
+export const pauseVideoDownload = ipcManager.pauseVideoDownload.bind(ipcManager)
+export const cancelVideoDownload = ipcManager.cancelVideoDownload.bind(ipcManager)
+export const deleteLocalVideo = ipcManager.deleteLocalVideo.bind(ipcManager)
+export const getDownloadTasks = ipcManager.getDownloadTasks.bind(ipcManager)
