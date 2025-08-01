@@ -5,17 +5,21 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { getConfig, saveConfig as saveConfigIpc } from '../utils/ipc/'
 
+// 编辑中的索引
 const editingIndex = ref<number | null>(null)
 
+// 开始编辑
 function startEditing(index: number) {
   editingIndex.value = index
 }
 
+// 停止编辑
 function stopEditing() {
   editingIndex.value = null
   saveConfig()
 }
 
+// 屏幕尺寸判断
 const isSmallScreen = ref(false)
 const staticWeekdayOptions = [
   { label: '周一', shortLabel: '一', value: 1 },
@@ -34,8 +38,10 @@ const responsiveWeekdayOptions = computed(() => {
   }))
 })
 
+// 关机时间列表
 const shutdownTimes = ref<ShutdownTime[]>([])
 
+// 获取星期总结
 function getWeekdaySummary(weekdays: number[]): string {
   if (!weekdays || weekdays.length === 0)
     return '不重复'
@@ -61,6 +67,7 @@ function getWeekdaySummary(weekdays: number[]): string {
     .join(', ')
 }
 
+// 添加关机计划
 function addShutdownTime() {
   const newIndex = shutdownTimes.value.length
   shutdownTimes.value.push({
@@ -76,6 +83,7 @@ function addShutdownTime() {
   startEditing(newIndex)
 }
 
+// 删除关机计划
 function removeShutdownTime(index: number) {
   ElMessageBox.confirm('确定要删除这个关机计划吗？', '删除确认', {
     confirmButtonText: '确定',
@@ -99,6 +107,7 @@ function removeShutdownTime(index: number) {
     .catch(() => {})
 }
 
+// 切换星期
 function toggleWeekday(item: ShutdownTime, day: number) {
   if (!item.active)
     return
@@ -113,6 +122,7 @@ function toggleWeekday(item: ShutdownTime, day: number) {
   saveConfig()
 }
 
+// 保存配置
 async function saveConfig() {
   const serializableConfig = {
     shutdownTimes: shutdownTimes.value.map(time => ({
@@ -130,6 +140,7 @@ async function saveConfig() {
   })
 }
 
+// 加载配置
 async function loadConfig() {
   const result = await getConfig({
     showErrorMessage: true,
@@ -173,115 +184,89 @@ onUnmounted(() => {
     </el-button>
   </el-empty>
 
-  <TransitionGroup name="shutdown-list" tag="div" class="flex flex-col gap-3">
-    <el-card
-      v-for="(item, index) in shutdownTimes"
-      :key="index"
-      class="shutdown-card rounded-lg transition-all-300"
-      shadow="hover"
-      :body-style="{ padding: '15px' }"
-    >
-      <transition name="view-switch" mode="out-in">
-        <!-- 编辑视图 -->
-        <div v-if="editingIndex === index" class="flex flex-col gap-3">
-          <div class="flex items-center gap-3">
-            <el-switch v-model="item.active" @change="saveConfig" />
-            <el-time-picker
-              v-model="item.time"
-              format="HH:mm:ss"
-              value-format="HH:mm:ss"
-              class="flex-grow"
-              :disabled="!item.active"
-              @change="saveConfig"
-            />
-            <el-button type="primary" :icon="Check" circle @click="stopEditing" />
-          </div>
-          <div class="flex flex-nowrap gap-1">
-            <el-button
-              v-for="day in responsiveWeekdayOptions"
-              :key="day.value"
-              :type="item.weekdays.includes(day.value) ? 'primary' : 'default'"
-              size="small"
-              :plain="!item.weekdays.includes(day.value)"
-              class="min-w-0 flex-1"
-              :disabled="!item.active"
-              @click="toggleWeekday(item, day.value)"
-            >
-              {{ day.label }}
-            </el-button>
-          </div>
-        </div>
-
-        <!-- 常规视图 -->
-        <div v-else class="w-full flex items-center gap-4">
-          <el-switch v-model="item.active" @change="saveConfig" />
-          <div
-            class="flex flex-grow cursor-pointer items-center gap-4"
-            @click="startEditing(index)"
-          >
-            <div class="flex items-center gap-1">
-              <el-icon class="text-gray-400">
-                <Clock />
-              </el-icon>
-              <span
-                class="text-lg"
-                :class="{ 'text-gray-400 line-through': !item.active }"
-              >
-                {{ item.time }}
-              </span>
-            </div>
-            <div class="hidden items-center gap-1 md:flex">
-              <el-divider direction="vertical" />
-              <div class="flex items-center gap-2">
-                <el-icon class="text-gray-400">
-                  <Calendar />
-                </el-icon>
-                <span class="text-gray-500" :class="{ 'text-gray-400': !item.active }">
-                  {{ getWeekdaySummary(item.weekdays) }}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div class="actions">
-            <el-button :icon="Edit" text circle @click="startEditing(index)" />
-            <el-button
-              :icon="Delete"
-              type="danger"
-              text
-              circle
-              @click="removeShutdownTime(index)"
-            />
-          </div>
-        </div>
-      </transition>
-    </el-card>
-  </TransitionGroup>
-
-  <div v-if="shutdownTimes.length" class="mt-6 flex justify-center">
+  <div v-if="shutdownTimes.length > 0 || isLoading === false" class="mb-6 flex justify-center">
     <el-button type="primary" :icon="Plus" text class="rounded-lg" @click="addShutdownTime">
       添加关机计划
     </el-button>
   </div>
+
+  <div class="flex flex-col gap-3">
+    <el-card
+      v-for="(item, index) in shutdownTimes"
+      :key="index"
+      class="shutdown-card rounded-lg"
+      shadow="hover"
+      :body-style="{ padding: '15px' }"
+    >
+      <div v-if="editingIndex === index" class="flex flex-col gap-3">
+        <div class="flex items-center gap-3">
+          <el-switch v-model="item.active" @change="saveConfig" />
+          <el-time-picker
+            v-model="item.time"
+            format="HH:mm:ss"
+            value-format="HH:mm:ss"
+            class="flex-grow"
+            :disabled="!item.active"
+            @change="saveConfig"
+          />
+          <el-button type="primary" :icon="Check" circle @click="stopEditing" />
+        </div>
+        <div class="flex flex-nowrap gap-1">
+          <el-button
+            v-for="day in responsiveWeekdayOptions"
+            :key="day.value"
+            :type="item.weekdays.includes(day.value) ? 'primary' : 'default'"
+            size="small"
+            :plain="!item.weekdays.includes(day.value)"
+            class="min-w-0 flex-1"
+            :disabled="!item.active"
+            @click="toggleWeekday(item, day.value)"
+          >
+            {{ day.label }}
+          </el-button>
+        </div>
+      </div>
+
+      <div v-else class="w-full flex items-center gap-4">
+        <el-switch v-model="item.active" @change="saveConfig" />
+        <div
+          class="flex flex-grow cursor-pointer items-center gap-4"
+          @click="startEditing(index)"
+        >
+          <div class="flex items-center gap-1">
+            <el-icon class="text-gray-400">
+              <Clock />
+            </el-icon>
+            <span
+              class="text-lg"
+              :class="{ 'text-gray-400 line-through': !item.active }"
+            >
+              {{ item.time }}
+            </span>
+          </div>
+          <div class="hidden items-center gap-1 md:flex">
+            <el-divider direction="vertical" />
+            <div class="flex items-center gap-2">
+              <el-icon class="text-gray-400">
+                <Calendar />
+              </el-icon>
+              <span class="text-gray-500" :class="{ 'text-gray-400': !item.active }">
+                {{ getWeekdaySummary(item.weekdays) }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <el-button :icon="Edit" text circle @click="startEditing(index)" />
+          <el-button
+            :icon="Delete"
+            type="danger"
+            text
+            circle
+            @click="removeShutdownTime(index)"
+          />
+        </div>
+      </div>
+    </el-card>
+  </div>
 </template>
-
-<style scoped>
-  .shutdown-list-enter-active,
-  .shutdown-list-leave-active {
-    transition: all 0.5s ease;
-  }
-  .shutdown-list-enter-from,
-  .shutdown-list-leave-to {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-
-  .view-switch-enter-active,
-  .view-switch-leave-active {
-    transition: all 0.2s ease-in-out;
-  }
-  .view-switch-enter-from,
-  .view-switch-leave-to {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-</style>
