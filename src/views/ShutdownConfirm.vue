@@ -44,7 +44,8 @@ onUnmounted(() => {
 async function handleUnlock() {
   showSuccess.value = true
 
-  await new Promise(resolve => setTimeout(resolve, 1500))
+  await new Promise(resolve => setTimeout(resolve, 3000))
+
   try {
     await updateShutdownStats('canceled')
     await cancelShutdown({ showSuccessMessage: true, successMessage: '关机已取消' })

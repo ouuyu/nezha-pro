@@ -7,7 +7,6 @@ const emit = defineEmits<{
 
 const checkPath = ref<SVGPathElement | null>(null)
 const checkCircle = ref<SVGCircleElement | null>(null)
-const fading = ref(false)
 
 onMounted(() => {
   // Use requestAnimationFrame to ensure animations start after DOM is ready
@@ -26,17 +25,12 @@ onMounted(() => {
 
       // Trigger animation in the next frame
       requestAnimationFrame(() => {
-        path.style.transition = 'stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
-        circle.style.transition = 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
+        path.style.transition = 'stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1)'
+        circle.style.transition = 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)'
         path.style.strokeDashoffset = '0'
         circle.style.strokeDashoffset = '0'
       })
     }
-
-    // Trigger fade-out after animations complete
-    setTimeout(() => {
-      fading.value = true
-    }, 1200)
   })
 })
 
@@ -48,28 +42,27 @@ function emitDone() {
 <template>
   <div
     class="success-overlay"
-    :class="{ 'fade-out': fading }"
     @animationend="emitDone"
   >
     <div class="black-bg" />
     <svg
       class="checkmark"
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 52 52"
+      viewBox="0 0 100 100"
     >
       <circle
         ref="checkCircle"
         class="checkmark-circle"
-        cx="26"
-        cy="26"
-        r="24"
+        cx="50"
+        cy="50"
+        r="45"
         fill="none"
       />
       <path
         ref="checkPath"
         class="checkmark-path"
         fill="none"
-        d="M14.1 27.2l7.1 7.2 16.7-16.8"
+        d="M28 54l14 14 34-34"
       />
     </svg>
   </div>
@@ -97,12 +90,15 @@ function emitDone() {
 }
 
 .checkmark {
-  width: 100px;
-  height: 100px;
+  width: 250px;
+  height: 250px;
   stroke: #00FF99;
-  stroke-width: 3;
+  stroke-width: 6;
   will-change: transform, opacity;
   animation: checkPop 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  shape-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .checkmark-circle,
@@ -115,7 +111,7 @@ function emitDone() {
 @keyframes blackIn {
   from {
     opacity: 0;
-    transform: scale(0.98);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
@@ -125,27 +121,16 @@ function emitDone() {
 
 @keyframes checkPop {
   0% {
-    transform: scale(0.8) rotate(-5deg);
+    transform: scale(0.6) rotate(-10deg);
     opacity: 0;
   }
   70% {
-    transform: scale(1.05) rotate(2deg);
+    transform: scale(1.2) rotate(4deg);
     opacity: 1;
   }
   100% {
     transform: scale(1) rotate(0deg);
     opacity: 1;
-  }
-}
-
-.fade-out {
-  animation: fadeOut 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-    transform: scale(0.95);
   }
 }
 </style>

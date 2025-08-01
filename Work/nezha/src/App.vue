@@ -112,30 +112,11 @@ onUnmounted(() => {
       </el-aside>
 
       <el-container :style="{ marginLeft: isCollapse ? '64px' : '240px' }">
-        <el-main class="p-4">
-          <router-view v-slot="{ Component }">
-            <transition name="fade" mode="out-in">
-              <component :is="Component" />
-            </transition>
-          </router-view>
-        </el-main>
+        <el-main class="p-4" />
       </el-container>
     </el-container>
   </div>
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.el-aside {
-  overflow-x: hidden;
-}
 </style>

@@ -123,17 +123,16 @@ function toggleWeekday(item: ShutdownTime, day: number) {
 }
 
 // 保存配置
-async function saveConfig() {
-  const serializableConfig = {
-    shutdownTimes: shutdownTimes.value.map(time => ({
-      time: time.time,
-      weekdays: [...time.weekdays],
-      active: time.active,
-    })),
-  }
+async function saveConfig(showMessage = true) {
+  const currentConfig = await getConfig()
 
-  await saveConfigIpc(serializableConfig, {
-    showSuccessMessage: true,
+  currentConfig.data.shutdownTimes = shutdownTimes.value.map(item => ({
+    ...item,
+    active: item.active,
+  }))
+
+  await saveConfigIpc(currentConfig.data, {
+    showSuccessMessage: showMessage,
     showErrorMessage: true,
     successMessage: '设置已保存',
     errorMessage: '保存失败',
@@ -178,95 +177,93 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <el-empty v-if="shutdownTimes.length === 0 && !isLoading" description="暂无关机计划">
-    <el-button text type="primary" class="rounded-lg px-6 py-3" @click="addShutdownTime">
-      创建第一个计划
-    </el-button>
-  </el-empty>
+  <div>
+    <el-empty v-if="shutdownTimes.length === 0 && !isLoading" description="暂无关机计划" />
 
-  <div v-if="shutdownTimes.length > 0 || isLoading === false" class="mb-6 flex justify-center">
-    <el-button type="primary" :icon="Plus" text class="rounded-lg" @click="addShutdownTime">
-      添加关机计划
-    </el-button>
-  </div>
+    <div v-if="shutdownTimes.length > 0 || isLoading === false" class="mb-6 flex justify-center">
+      <el-button type="primary" :icon="Plus" text class="rounded-lg" @click="addShutdownTime">
+        添加关机计划
+      </el-button>
+    </div>
 
-  <div class="flex flex-col gap-3">
-    <el-card
-      v-for="(item, index) in shutdownTimes"
-      :key="index"
-      class="shutdown-card rounded-lg"
-      shadow="hover"
-      :body-style="{ padding: '15px' }"
-    >
-      <div v-if="editingIndex === index" class="flex flex-col gap-3">
-        <div class="flex items-center gap-3">
-          <el-switch v-model="item.active" @change="saveConfig" />
-          <el-time-picker
-            v-model="item.time"
-            format="HH:mm:ss"
-            value-format="HH:mm:ss"
-            class="flex-grow"
-            :disabled="!item.active"
-            @change="saveConfig"
-          />
-          <el-button type="primary" :icon="Check" circle @click="stopEditing" />
-        </div>
-        <div class="flex flex-nowrap gap-1">
-          <el-button
-            v-for="day in responsiveWeekdayOptions"
-            :key="day.value"
-            :type="item.weekdays.includes(day.value) ? 'primary' : 'default'"
-            size="small"
-            :plain="!item.weekdays.includes(day.value)"
-            class="min-w-0 flex-1"
-            :disabled="!item.active"
-            @click="toggleWeekday(item, day.value)"
-          >
-            {{ day.label }}
-          </el-button>
-        </div>
-      </div>
-
-      <div v-else class="w-full flex items-center gap-4">
-        <el-switch v-model="item.active" @change="saveConfig" />
-        <div
-          class="flex flex-grow cursor-pointer items-center gap-4"
-          @click="startEditing(index)"
-        >
-          <div class="flex items-center gap-1">
-            <el-icon class="text-gray-400">
-              <Clock />
-            </el-icon>
-            <span
-              class="text-lg"
-              :class="{ 'text-gray-400 line-through': !item.active }"
-            >
-              {{ item.time }}
-            </span>
+    <div class="flex flex-col gap-3">
+      <el-card
+        v-for="(item, index) in shutdownTimes"
+        :key="index"
+        class="shutdown-card rounded-lg"
+        shadow="hover"
+        :body-style="{ padding: '15px' }"
+      >
+        <div v-if="editingIndex === index" class="flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <el-switch v-model="item.active" @change="saveConfig" />
+            <el-time-picker
+              v-model="item.time"
+              format="HH:mm:ss"
+              value-format="HH:mm:ss"
+              class="flex-grow"
+              :disabled="!item.active"
+              @change="saveConfig"
+            />
+            <el-button type="primary" :icon="Check" circle @click="stopEditing" />
           </div>
-          <div class="hidden items-center gap-1 md:flex">
-            <el-divider direction="vertical" />
-            <div class="flex items-center gap-2">
+          <div class="flex flex-nowrap gap-1">
+            <el-button
+              v-for="day in responsiveWeekdayOptions"
+              :key="day.value"
+              :type="item.weekdays.includes(day.value) ? 'primary' : 'default'"
+              size="small"
+              :plain="!item.weekdays.includes(day.value)"
+              class="min-w-0 flex-1"
+              :disabled="!item.active"
+              @click="toggleWeekday(item, day.value)"
+            >
+              {{ day.label }}
+            </el-button>
+          </div>
+        </div>
+
+        <div v-else class="w-full flex items-center gap-4">
+          <el-switch v-model="item.active" @change="saveConfig" />
+          <div
+            class="flex flex-grow cursor-pointer items-center gap-4"
+            @click="startEditing(index)"
+          >
+            <div class="flex items-center gap-1">
               <el-icon class="text-gray-400">
-                <Calendar />
+                <Clock />
               </el-icon>
-              <span class="text-gray-500" :class="{ 'text-gray-400': !item.active }">
-                {{ getWeekdaySummary(item.weekdays) }}
+              <span
+                class="text-lg"
+                :class="{ 'text-gray-400 line-through': !item.active }"
+              >
+                {{ item.time }}
               </span>
             </div>
+            <div class="hidden items-center gap-1 md:flex">
+              <el-divider direction="vertical" />
+              <div class="flex items-center gap-2">
+                <el-icon class="text-gray-400">
+                  <Calendar />
+                </el-icon>
+                <span class="text-gray-500" :class="{ 'text-gray-400': !item.active }">
+                  {{ getWeekdaySummary(item.weekdays) }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="actions">
+            <el-button :icon="Edit" text circle @click="startEditing(index)" />
+            <el-button
+              :icon="Delete"
+              type="danger"
+              text
+              circle
+              @click="removeShutdownTime(index)"
+            />
           </div>
         </div>
-        <div class="actions">
-          <el-button :icon="Edit" text circle @click="startEditing(index)" />
-          <el-button
-            :icon="Delete"
-            type="danger"
-            text
-            circle
-            @click="removeShutdownTime(index)"
-          />
-        </div>
-      </div>
-    </el-card>
+      </el-card>
+    </div>
   </div>
 </template>
