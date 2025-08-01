@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { KnowledgeItem, KnowledgeManagementEmits, KnowledgeManagementProps } from '../types/interfaces'
+import type { KnowledgeItem, KnowledgeManagementEmits, KnowledgeManagementProps } from '../types'
 import { ElAutoResizer, ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElMessage, ElMessageBox, ElOption, ElRadio, ElRadioGroup, ElSelect, ElTableV2, ElTag, TableV2FixedDir } from 'element-plus'
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { getConfig, saveConfig } from '../utils/ipc/'
