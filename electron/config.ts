@@ -18,8 +18,6 @@ const builtInCloudSources: CloudKnowledgeSource[] = [
 
 const defaultConfig = {
   shutdownTimes: [],
-  knowledgeBase: [],
-  cloudKnowledgeSources: [] as any[],
   autoSyncEnabled: false,
   syncInterval: 60,
   shutdownBackground: {
@@ -29,6 +27,8 @@ const defaultConfig = {
     speed: 1,
     colors: ['#7877c6', '#4f46e5', '#06b6d4'],
   },
+  cloudKnowledgeSources: [] as any[],
+  knowledgeBase: [],
 }
 
 const builtInSourceSyncTimes = new Map<string, string>()

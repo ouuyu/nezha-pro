@@ -139,24 +139,24 @@ onMounted(loadDeveloperInfo)
       </el-button>
     </div>
 
-    <el-dialog v-model="configEditorVisible" title="配置文件编辑器" width="80%" :close-on-click-modal="false" :close-on-press-escape="false">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <span>配置文件编辑器</span>
-          <el-button size="small" @click="formatConfigJson">
-            格式化
-          </el-button>
-        </div>
-      </template>
+    <el-dialog
+      v-model="configEditorVisible"
+      title="配置文件编辑器"
+      width="80%"
+      :close-on-click-modal="false" :close-on-press-escape="false"
+    >
       <MonacoEditor
         ref="editorRef"
         v-model="configContent"
         language="json"
         theme="vs-dark"
-        :options="{ fontSize: 14, minimap: { enabled: false } }"
+        :options="{ fontSize: 14, minimap: { enabled: true } }"
       />
       <template #footer>
         <div class="flex justify-end gap-2">
+          <el-button @click="formatConfigJson">
+            格式化
+          </el-button>
           <el-button @click="configEditorVisible = false">
             取消
           </el-button>
