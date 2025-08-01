@@ -27,24 +27,28 @@ const style = computed(() => ({
 }))
 
 let animationFrameId: number
+let lastTime = 0
+const targetFPS = 30
+const interval = 1000 / targetFPS
 
-function animate() {
-  layers.value.forEach((layer) => {
-    const deltaX = (Math.random() - 0.5) * 0.5
-    const deltaY = (Math.random() - 0.5) * 0.5
-    layer.x = (layer.x + deltaX) % 100
-    layer.y = (layer.y + deltaY) % 100
+function animate(currentTime: number) {
+  if (currentTime - lastTime >= interval) {
+    layers.value.forEach((layer) => {
+      const deltaX = (Math.random() - 0.5) * 0.5
+      const deltaY = (Math.random() - 0.5) * 0.5
+      layer.x = (layer.x + deltaX) % 100
+      layer.y = (layer.y + deltaY) % 100
 
-    const deltaScale = (Math.random() - 0.5) * 0.01
-    layer.scale = Math.max(0.5, Math.min(1.5, layer.scale + deltaScale))
+      const deltaScale = (Math.random() - 0.5) * 0.01
+      layer.scale = Math.max(0.5, Math.min(1.5, layer.scale + deltaScale))
 
-    const deltaOpacity = (Math.random() - 0.5) * 0.01
-    layer.opacity = Math.max(0.3, Math.min(0.9, layer.opacity + deltaOpacity))
-  })
+      const deltaOpacity = (Math.random() - 0.5) * 0.01
+      layer.opacity = Math.max(0.3, Math.min(0.9, layer.opacity + deltaOpacity))
+    })
+    lastTime = currentTime
+  }
 
-  setTimeout(() => {
-    animationFrameId = requestAnimationFrame(animate)
-  }, 33 / (props.config.speed || 1))
+  animationFrameId = requestAnimationFrame(animate)
 }
 
 onMounted(() => {
@@ -55,7 +59,7 @@ onMounted(() => {
     })
   }, 100)
 
-  animate()
+  animationFrameId = requestAnimationFrame(animate)
 })
 
 onBeforeUnmount(() => {
