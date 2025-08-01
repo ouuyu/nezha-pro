@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import CloudSyncSettings from '../components/CloudSyncSettings.vue'
 import KnowledgeManagement from '../components/KnowledgeManagement.vue'
 
-const activeTab = ref('knowledge')
+const activeTab = ref('sync')
 const syncLoading = ref(false)
 const lastSyncTime = ref('')
 
@@ -37,16 +37,15 @@ async function syncFromCloud() {
   <div class="knowledge-base-container">
     <el-card class="full-height-card rounded-lg" shadow="hover">
       <el-tabs v-model="activeTab" class="full-height-tabs">
+        <el-tab-pane label="云端同步" name="sync" class="full-height-pane">
+          <CloudSyncSettings />
+        </el-tab-pane>
         <el-tab-pane label="知识库" name="knowledge" class="full-height-pane">
           <KnowledgeManagement
             :sync-loading="syncLoading"
             :last-sync-time="lastSyncTime"
             @sync-from-cloud="syncFromCloud"
           />
-        </el-tab-pane>
-
-        <el-tab-pane label="云端同步" name="sync" class="full-height-pane">
-          <CloudSyncSettings />
         </el-tab-pane>
       </el-tabs>
     </el-card>

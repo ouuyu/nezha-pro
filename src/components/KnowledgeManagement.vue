@@ -84,7 +84,9 @@ async function loadKnowledgeBase() {
       knowledgeBase.value = result.data.knowledgeBase || []
   }
   finally {
-    isLoading.value = false
+    setTimeout(() => {
+      isLoading.value = false
+    }, 200)
   }
 }
 
@@ -143,10 +145,6 @@ function openBatchDeleteDialog() {
 
 async function executeBatchDelete() {
   try {
-    await ElMessageBox.confirm('确定要删除吗？此操作不可撤销。', '批量删除确认', {
-      confirmButtonText: '确定删除',
-      type: 'warning',
-    })
     batchDeleteLoading.value = true
     const ipc = window.require('electron').ipcRenderer
     const result = selectedDeleteType.value === 'all'
@@ -202,6 +200,7 @@ onMounted(loadKnowledgeBase)
             :columns="columns"
             :width="width"
             :height="height"
+            :cache="20"
             fixed
           />
         </template>

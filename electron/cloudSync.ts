@@ -5,49 +5,27 @@ import type {
   SyncResult,
   SyncSourceConfig,
 } from '../src/types/interfaces'
-import * as http from 'node:http'
-import * as https from 'node:https'
-import { URL } from 'node:url'
+import axios from 'axios'
 import { getConfig, saveConfig, updateBuiltInSourceSyncTime } from './config'
 
-function fetchFromUrl(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    try {
-      const parsedUrl = new URL(url)
-      const client = parsedUrl.protocol === 'https:' ? https : http
-
-      const request = client.get(url, (response) => {
-        let data = ''
-
-        response.on('data', (chunk) => {
-          data += chunk
-        })
-
-        response.on('end', () => {
-          if (response.statusCode === 200) {
-            resolve(data)
-          }
-          else {
-            reject(new Error(`HTTP ${response.statusCode}: ${response.statusMessage}`))
-          }
-        })
-      })
-
-      request.on('error', (error) => {
-        reject(error)
-      })
-
-      request.setTimeout(30000, () => {
-        request.destroy()
-        reject(new Error('请求超时'))
-      })
-    }
-    catch (error) {
-      reject(error)
-    }
+function fetchFromUrl(url) {
+  return axios.get(url, {
+    timeout: 30000,
+    responseType: 'text',
   })
-}
+    .then(response => response.data)
+    .catch((error) => {
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        throw new Error('请求超时')
+      }
 
+      if (error.response) {
+        throw new Error(`HTTP ${error.response.status}: ${error.response.statusText}`)
+      }
+
+      throw new Error(`请求失败: ${error.message}`)
+    })
+}
 function parseCloudData(data: string): CloudKnowledgeItem[] {
   try {
     const jsonData = JSON.parse(data)
