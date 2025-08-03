@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BackgroundConfig, KnowledgeItem } from '../types/interfaces'
+import type { BackgroundConfig, KnowledgeItem } from '../types'
 import { onMounted, onUnmounted, ref } from 'vue'
 import BackgroundEffect from '../components/BackgroundEffect.vue'
 import CheckSuccess from '../components/CheckSuccess.vue'
@@ -8,6 +8,7 @@ import SlideToUnlock from '../components/SlideToUnlock.vue'
 import { cancelShutdown, getConfig } from '../utils/ipc/'
 import { updateShutdownStats } from '../utils/shutdownStats'
 
+// 配置和状态
 const backgroundConfig = ref<BackgroundConfig>({
   type: 'css',
   cssEffect: 'aurora',
@@ -15,10 +16,13 @@ const backgroundConfig = ref<BackgroundConfig>({
   speed: 1,
   colors: ['#7877c6', '#4f46e5', '#06b6d4'],
 })
-
 const isConfigLoaded = ref(false)
 const showSuccess = ref(false)
 const knowledgeItems = ref<KnowledgeItem[]>([])
+
+// 倒计时相关
+const countdown = ref(60)
+const countdownInterval = ref<number | null>(null)
 
 onMounted(async () => {
   try {
@@ -29,9 +33,10 @@ onMounted(async () => {
       }
       knowledgeItems.value = result.data.knowledgeBase || []
     }
+    startCountdown()
   }
   catch (err) {
-    console.warn('配置读取失败:', err)
+    console.warn('Failed to load config:', err)
   }
   finally {
     isConfigLoaded.value = true
@@ -39,19 +44,52 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  if (countdownInterval.value) {
+    clearInterval(countdownInterval.value)
+  }
 })
 
-async function handleUnlock() {
-  showSuccess.value = true
+function startCountdown() {
+  if (countdownInterval.value) {
+    clearInterval(countdownInterval.value)
+  }
 
-  await new Promise(resolve => setTimeout(resolve, 3000))
+  countdownInterval.value = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--
+    }
+    else {
+      handleShutdown()
+    }
+  }, 1000) as unknown as number
+}
 
+async function handleShutdown() {
+  if (countdownInterval.value) {
+    clearInterval(countdownInterval.value)
+  }
   try {
-    await updateShutdownStats('canceled')
-    await cancelShutdown({ showSuccessMessage: true, successMessage: '关机已取消' })
+    await updateShutdownStats('executed')
+    // Placeholder for actual shutdown logic
   }
   catch (err) {
-    console.error('取消关机失败:', err)
+    console.error('Shutdown failed:', err)
+  }
+}
+
+async function handleUnlock() {
+  if (countdownInterval.value) {
+    clearInterval(countdownInterval.value)
+    countdownInterval.value = null
+  }
+  showSuccess.value = true
+  await new Promise(resolve => setTimeout(resolve, 3000))
+  try {
+    await updateShutdownStats('canceled')
+    await cancelShutdown({ showSuccessMessage: true, successMessage: 'Shutdown canceled' })
+  }
+  catch (err) {
+    console.error('Cancel shutdown failed:', err)
   }
 }
 </script>
@@ -71,7 +109,7 @@ async function handleUnlock() {
       <CheckSuccess v-if="showSuccess" />
 
       <div class="slider-container" :class="{ 'opacity-0': showSuccess }">
-        <SlideToUnlock @unlock="handleUnlock" />
+        <SlideToUnlock :countdown-value="countdown" @unlock="handleUnlock" />
       </div>
     </div>
   </div>
@@ -117,6 +155,10 @@ async function handleUnlock() {
 }
 
 .slider-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
   margin-top: 5rem;
   transition: opacity 0.5s ease;
   z-index: 1000;
@@ -125,9 +167,6 @@ async function handleUnlock() {
 @media (max-width: 768px) {
   .content-wrapper {
     padding: 1rem;
-  }
-  .slider-container {
-    margin-top: 3rem;
   }
 }
 </style>

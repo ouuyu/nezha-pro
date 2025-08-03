@@ -6,8 +6,6 @@ import { getConfig } from './config'
 // Store shutdown timers
 let shutdownTimers: NodeJS.Timeout[] = []
 let shutdownWindow: BrowserWindow | null = null
-
-// Schedule shutdown based on config
 export function scheduleShutdowns() {
   // Clear existing timers
   shutdownTimers.forEach(timer => clearTimeout(timer))

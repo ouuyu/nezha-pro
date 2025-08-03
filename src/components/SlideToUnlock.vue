@@ -6,6 +6,7 @@ interface Props {
   disabled?: boolean
   width?: number
   height?: number
+  countdownValue?: number | null // 新增：接收倒计时值
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -13,6 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   width: 300,
   height: 60,
+  countdownValue: null,
 })
 
 const emit = defineEmits<{
@@ -37,52 +39,58 @@ const progressStyle = computed(() => ({
   width: `${knobPosition.value + props.height}px`,
 }))
 
+const isUrgent = computed(() => props.countdownValue && props.countdownValue <= 60)
+
 const textOpacity = computed(() => {
   const progress = knobPosition.value / maxPosition.value
   return Math.max(0.3, 1 - progress * 1.5)
 })
 
 function handleStart(event: MouseEvent | TouchEvent) {
-  if (props.disabled) return
-  
+  if (props.disabled)
+    return
+
   isDragging.value = true
   const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX
   startX.value = clientX - knobPosition.value
-  
+
   document.addEventListener('mousemove', handleMove)
   document.addEventListener('mouseup', handleEnd)
   document.addEventListener('touchmove', handleMove)
   document.addEventListener('touchend', handleEnd)
-  
+
   event.preventDefault()
 }
 
 function handleMove(event: MouseEvent | TouchEvent) {
-  if (!isDragging.value) return
-  
+  if (!isDragging.value)
+    return
+
   const clientX = 'touches' in event ? event.touches[0].clientX : event.clientX
   currentX.value = clientX - startX.value
-  
+
   // 限制滑动范围
   knobPosition.value = Math.max(0, Math.min(maxPosition.value, currentX.value))
-  
+
   event.preventDefault()
 }
 
 function handleEnd() {
-  if (!isDragging.value) return
-  
+  if (!isDragging.value)
+    return
+
   isDragging.value = false
-  
+
   // 检查是否滑动到了最右边
   if (knobPosition.value >= maxPosition.value * 0.9) {
     // 触发解锁
     emit('unlock')
-  } else {
+  }
+  else {
     // 回弹到起始位置
     knobPosition.value = 0
   }
-  
+
   document.removeEventListener('mousemove', handleMove)
   document.removeEventListener('mouseup', handleEnd)
   document.removeEventListener('touchmove', handleMove)
@@ -101,7 +109,7 @@ onUnmounted(() => {
     knobRef.value.removeEventListener('mousedown', handleStart)
     knobRef.value.removeEventListener('touchstart', handleStart)
   }
-  
+
   document.removeEventListener('mousemove', handleMove)
   document.removeEventListener('mouseup', handleEnd)
   document.removeEventListener('touchmove', handleMove)
@@ -110,24 +118,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div 
+  <div
     ref="sliderRef"
     class="slide-to-unlock"
     :style="{ width: `${width}px`, height: `${height}px` }"
     :class="{ disabled }"
   >
-    <!-- 背景轨道 -->
     <div class="track">
-      <!-- 进度条 -->
       <div class="progress" :style="progressStyle" />
-      
-      <!-- 文字 -->
-      <div class="text" :style="{ opacity: textOpacity }">
+
+      <div class="text" :style="{ opacity: textOpacity }" :class="{ urgent: isUrgent }">
         {{ text }}
       </div>
-      
-      <!-- 滑动按钮 -->
-      <div 
+
+      <div
         ref="knobRef"
         class="knob"
         :style="knobStyle"
@@ -135,11 +139,11 @@ onUnmounted(() => {
       >
         <div class="knob-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path 
-              d="M9 18L15 12L9 6" 
-              stroke="currentColor" 
-              stroke-width="2" 
-              stroke-linecap="round" 
+            <path
+              d="M9 18L15 12L9 6"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
               stroke-linejoin="round"
             />
           </svg>
@@ -186,7 +190,7 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 500;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, color 0.5s ease; /* 添加 color 过渡 */
 }
 
 .knob {
@@ -224,5 +228,22 @@ onUnmounted(() => {
 
 .disabled .knob {
   cursor: not-allowed;
+}
+
+/* 新增：紧急状态下的动画 */
+.text.urgent {
+  animation: urgent-pulse 1s infinite alternate;
+  color: #f87171; /* 紧急时变为红色 */
+}
+
+@keyframes urgent-pulse {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.05);
+    opacity: 0.8;
+  }
 }
 </style>

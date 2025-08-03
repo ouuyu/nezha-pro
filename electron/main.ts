@@ -1,7 +1,7 @@
 import * as path from 'node:path'
 import process from 'node:process'
 /// <reference path="./electron-env.d.ts" />
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu } from 'electron'
 import { startAutoSync, stopAutoSync } from './autoSync'
 import { ensureConfigFile } from './config'
 import { setupIpcHandlers } from './ipc'
@@ -21,7 +21,10 @@ function createWindow() {
       contextIsolation: false,
       nodeIntegration: true,
     },
+    autoHideMenuBar: true,
   })
+
+  Menu.setApplicationMenu(null)
 
   if (!win)
     return
@@ -30,7 +33,6 @@ function createWindow() {
     win.loadURL(VITE_DEV_SERVER_URL)
   }
   else if (win) {
-    // Make sure dist directory exists
     win.loadFile(path.join(process.env.DIST || '', 'index.html'))
   }
 }

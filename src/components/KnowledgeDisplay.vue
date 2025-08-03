@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { KnowledgeItem } from '../types/interfaces'
+import type { KnowledgeItem } from '../types'
 import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps<{
@@ -111,10 +111,10 @@ defineExpose({
       class="mt-4 w-full flex flex-wrap items-center justify-center gap-4 text-sm text-gray-300"
     >
       <span class="rounded-full bg-white/10 px-4 py-2 transition-colors">
-        作者: {{ currentKnowledge.author }}
+        {{ currentKnowledge.author }}
       </span>
       <span class="rounded-full bg-white/10 px-4 py-2 transition-colors">
-        出处: {{ currentKnowledge.source }}
+        {{ currentKnowledge.source }}
       </span>
     </div>
   </div>
