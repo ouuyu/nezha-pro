@@ -1,6 +1,6 @@
 {
   "name": "nezha",
-  "version": "0.0.9",
+  "version": "0.0.8",
   "private": true,
   "main": "dist-electron/main.js",
   "scripts": {
@@ -19,6 +19,7 @@
     "@vuepic/vue-datepicker": "^11.0.2",
     "@vueuse/core": "^13.6.0",
     "axios": "^1.11.0",
+    "electron-updater": "^6.6.2",
     "element-plus": "^2.10.4",
     "monaco-editor": "^0.52.2",
     "node-fetch": "^3.3.2",

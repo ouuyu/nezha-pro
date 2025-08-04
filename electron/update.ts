@@ -1,125 +1,120 @@
-import { exec } from 'node:child_process'
-import * as fs from 'node:fs'
-import * as path from 'node:path'
-import axios from 'axios'
+import type { BrowserWindow } from 'electron'
 import { app, ipcMain } from 'electron'
+import { autoUpdater } from 'electron-updater'
 
-// GitHub releases API URL
-const RELEASES_API_URL = 'https://api.github.com/repos/ouuyu/nezha-pro/releases/latest'
+let win: BrowserWindow | null = null
 
-export interface ReleaseInfo {
-  tag_name: string
-  name: string
-  html_url: string
-  assets: Array<{
-    name: string
-    browser_download_url: string
-  }>
+// Function to set the window reference
+export function setMainWindow(window: BrowserWindow | null) {
+  win = window
 }
 
 export function setupUpdateHandlers() {
+  // Configure autoUpdater
+  autoUpdater.autoDownload = false
+  autoUpdater.autoInstallOnAppQuit = false
+
+  // Configure update github repo
+  autoUpdater.setFeedURL({
+    provider: 'github',
+    repo: 'ouuyu-tree',
+    owner: 'nezha-pro-tree',
+  })
+
+  // Handle check for updates
   ipcMain.handle('check-for-updates', async () => {
     try {
-      const latestRelease = await getLatestRelease()
-      const currentVersion = app.getVersion()
+      const result = await autoUpdater.checkForUpdates()
 
-      if (isNewerVersion(latestRelease.tag_name, `v${currentVersion}`)) {
+      if (result?.updateInfo) {
         return {
           hasUpdate: true,
-          currentVersion,
-          latestVersion: latestRelease.tag_name,
-          releaseInfo: latestRelease,
+          currentVersion: app.getVersion(),
+          latestVersion: result.updateInfo.version,
+          releaseInfo: {
+            tag_name: result.updateInfo.version,
+            name: result.updateInfo.releaseName || result.updateInfo.version,
+            html_url: '',
+            assets: [],
+          },
         }
       }
       else {
         return {
           hasUpdate: false,
-          currentVersion,
-          latestVersion: latestRelease.tag_name,
+          currentVersion: app.getVersion(),
+          latestVersion: app.getVersion(),
         }
       }
     }
-    catch (error) {
+    catch (error: any) {
       console.error('Error checking for updates:', error)
       return {
         hasUpdate: false,
         error: error.message,
+        currentVersion: app.getVersion(),
       }
     }
   })
 
-  ipcMain.handle('download-and-install-update', async (_event, downloadUrl: string) => {
+  // Handle download and install update
+  ipcMain.handle('download-and-install-update', async () => {
     try {
-      await downloadAndInstallUpdate(downloadUrl)
+      await autoUpdater.downloadUpdate()
       return { success: true }
     }
-    catch (error) {
-      console.error('Error downloading/installing update:', error)
+    catch (error: any) {
+      console.error('Error downloading update:', error)
       return { success: false, error: error.message }
     }
   })
-}
 
-async function getLatestRelease(): Promise<ReleaseInfo> {
-  const { data } = await axios.get<ReleaseInfo>(RELEASES_API_URL, {
-    headers: {
-      'User-Agent': 'Nezha-App',
-    },
+  // Handle quit and install
+  ipcMain.handle('quit-and-install', async () => {
+    try {
+      autoUpdater.quitAndInstall()
+      return { success: true }
+    }
+    catch (error: any) {
+      console.error('Error installing update:', error)
+      return { success: false, error: error.message }
+    }
   })
-  return data
-}
 
-function isNewerVersion(latestVersion: string, currentVersion: string): boolean {
-  const latest = latestVersion.replace(/^v/, '')
-  const current = currentVersion.replace(/^v/, '')
-
-  const latestParts = latest.split('.').map(Number)
-  const currentParts = current.split('.').map(Number)
-
-  for (let i = 0; i < Math.max(latestParts.length, currentParts.length); i++) {
-    const latestNum = latestParts[i] || 0
-    const currentNum = currentParts[i] || 0
-
-    if (latestNum > currentNum) {
-      return true
-    }
-    else if (latestNum < currentNum) {
-      return false
-    }
+  // Auto-check for updates on app start (in production only)
+  if (app.isPackaged) {
+    setTimeout(() => {
+      autoUpdater.checkForUpdates()
+    }, 5000) // Check after 5 seconds
   }
 
-  return false
-}
-
-async function downloadAndInstallUpdate(downloadUrl: string): Promise<void> {
-  const tempDir = app.getPath('temp')
-  const fileName = path.basename(downloadUrl)
-  const filePath = path.join(tempDir, fileName)
-
-  const writer = fs.createWriteStream(filePath)
-  const response = await axios({
-    url: downloadUrl,
-    method: 'GET',
-    responseType: 'stream',
+  // Handle autoUpdater events
+  autoUpdater.on('update-available', (info) => {
+    if (win) {
+      win.webContents.send('update-available', info)
+    }
   })
 
-  response.data.pipe(writer)
+  autoUpdater.on('update-not-available', () => {
+    // No update available
+  })
 
-  return new Promise((resolve, reject) => {
-    writer.on('finish', () => {
-      exec(`"${filePath}" /S`, (error) => {
-        if (error) {
-          reject(error)
-        }
-        else {
-          resolve()
-        }
-      })
-    })
+  autoUpdater.on('download-progress', (progressObj) => {
+    if (win) {
+      win.webContents.send('download-progress', progressObj)
+    }
+  })
 
-    writer.on('error', (error) => {
-      fs.unlink(filePath, () => {})
-      reject(error)
-    })
+  autoUpdater.on('update-downloaded', (info) => {
+    if (win) {
+      win.webContents.send('update-downloaded', info)
+    }
+  })
+
+  autoUpdater.on('error', (error) => {
+    console.error('AutoUpdater error:', error)
+    if (win) {
+      win.webContents.send('update-error', error.message)
+    }
   })
 }

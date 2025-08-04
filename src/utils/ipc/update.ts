@@ -11,10 +11,16 @@ export class UpdateIpc extends IpcBase {
 
   /**
    * 下载并安装更新
-   * @param downloadUrl 下载地址
    */
-  async downloadAndInstallUpdate(downloadUrl: string) {
-    return await this.invoke('download-and-install-update', downloadUrl)
+  async downloadAndInstallUpdate() {
+    return await this.invoke('download-and-install-update')
+  }
+  
+  /**
+   * 退出并安装更新
+   */
+  async quitAndInstall() {
+    return await this.invoke('quit-and-install')
   }
 }
 

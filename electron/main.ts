@@ -6,7 +6,7 @@ import { stopAutoSync } from './autoSync'
 import { ensureConfigFile } from './config'
 import { setupIpcHandlers } from './ipc'
 import { scheduleShutdowns } from './shutdown'
-import { setupUpdateHandlers } from './update'
+import { setMainWindow, setupUpdateHandlers } from './update'
 
 process.env.DIST = path.join(__dirname, '../dist')
 process.env.PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
@@ -26,6 +26,9 @@ function createWindow() {
   })
 
   Menu.setApplicationMenu(null)
+
+  // Pass window reference to update module
+  setMainWindow(win)
 
   if (!win)
     return
