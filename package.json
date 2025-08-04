@@ -9,7 +9,7 @@
     "build": "vue-tsc -b && vite build && electron-builder",
     "preview": "vite preview",
     "electron:dev": "vite",
-    "electron:build": "vue-tsc -b && vite build && electron-builder",
+    "electron:build": "vue-tsc -b && vite build && electron-builder -p never",
     "electron:preview": "electron-builder --dir && electron --no-sandbox dist-electron/main",
     "format": "prettier --write \"src/**/*.{js,ts,vue,css}\" \"electron/**/*.{js,ts}\"",
     "format:check": "prettier --check \"src/**/*.{js,ts,vue,css}\" \"electron/**/*.{js,ts}\""
