@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'package.json'
+      - '.github/workflows/build-and-release.yml'
 
 permissions:
   contents: write
@@ -22,6 +23,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
       - name: Get current version
         id: current_version
@@ -94,12 +100,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'pnpm'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: latest
+          run_install: false
 
       - name: Install dependencies
         run: pnpm install
@@ -141,12 +147,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'pnpm'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: latest
+          run_install: false
 
       - name: Install dependencies
         run: pnpm install
