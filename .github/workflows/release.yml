@@ -13,8 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version_changed: ${{ steps.check_version.outputs.changed }}
-      new_version: ${{ steps.check_version.outputs.new_version }}
-      old_version: ${{ steps.check_version.outputs.old_version }}
+      new_version: ${{ steps.check-version.outputs.new_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,13 +32,9 @@ jobs:
           git checkout HEAD~1
           PREVIOUS_VERSION=$( [ -f package.json ] && node -p "require('./package.json').version" || echo "0.0.0" )
           
-          echo "Current version: $CURRENT_VERSION"
-          echo "Previous version: $PREVIOUS_VERSION"
-          
           if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-            echo "old_version=$PREVIOUS_VERSION" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
@@ -51,9 +46,6 @@ jobs:
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -66,11 +58,8 @@ jobs:
           prerelease: false
 
   build:
-    needs: check-version
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest]
+    needs: [check-version, create-release]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -89,68 +78,27 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build application
-        run: pnpm run electron:build
+      - name: Build applications
+        run: pnpm run electron:build --mac --win
 
-      - name: Upload artifact to Actions
-        uses: actions/upload-artifact@v4
-        with:
-          name: Nezha_${{ needs.check-version.outputs.new_version }}_${{ matrix.os }}
-          path: ./release/${{ needs.check-version.outputs.new_version }}/Nezha_${{ needs.check-version.outputs.new_version }}.${{ matrix.os == 'windows-latest' && 'exe' || 'dmg' }}
-
-      - name: Upload artifact to Release
+      - name: Upload macos artifact to Release
         if: needs.check-version.outputs.version_changed == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: ./release/${{ needs.check-version.outputs.new_version }}/Nezha_${{ needs.check-version.outputs.new_version }}.${{ matrix.os == 'windows-latest' && 'exe' || 'dmg' }}
-          asset_name: Nezha_${{ needs.check-version.outputs.new_version }}_${{ matrix.os == 'windows-latest' && 'windows.exe' || 'macos.dmg' }}
+          asset_path: ./release/Nezha-${{ needs.check-version.outputs.new_version }}.dmg
+          asset_name: Nezha_${{ needs.check-version.outputs.new_version }}.dmg
           asset_content_type: application/octet-stream
 
-  build-asar:
-    needs: check-version
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          run_install: false
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Install asar
-        run: pnpm add -g asar
-
-      - name: Build and package ASAR
-        run: |
-          pnpm run build
-          asar pack dist-electron app.asar
-
-      - name: Upload ASAR to Actions
-        uses: actions/upload-artifact@v4
-        with:
-          name: Nezha_${{ needs.check-version.outputs.new_version }}_asar
-          path: ./app.asar
-
-      - name: Upload ASAR to Release
+      - name: Upload windows artifact to Release
         if: needs.check-version.outputs.version_changed == 'true'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create-release.outputs.upload_url }} 
-          asset_path: ./app.asar
-          asset_name: Nezha_${{ needs.check-version.outputs.new_version }}.asar
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ./release/Nezha Setup ${{ needs.check-version.outputs.new_version }}.exe
+          asset_name: Nezha Setup ${{ needs.check-version.outputs.new_version }}.exe
           asset_content_type: application/octet-stream
