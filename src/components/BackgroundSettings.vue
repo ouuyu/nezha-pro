@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BackgroundConfig } from '../types/interfaces'
+import type { BackgroundConfig } from '../types'
 import { Delete, Plus } from '@element-plus/icons-vue'
 import { ElButton, ElCard, ElColorPicker, ElFormItem, ElMessage, ElOption, ElSelect, ElSlider } from 'element-plus'
 import { onMounted, ref, watch } from 'vue'

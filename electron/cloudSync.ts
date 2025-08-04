@@ -4,7 +4,7 @@ import type {
   CloudKnowledgeSource,
   SyncResult,
   SyncSourceConfig,
-} from '../src/types/interfaces'
+} from '../src/types'
 import axios from 'axios'
 import { getConfig, saveConfig, updateBuiltInSourceSyncTime } from './config'
 

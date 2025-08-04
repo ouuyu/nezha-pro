@@ -1,4 +1,4 @@
-import type { ShutdownStats } from '../types/interfaces'
+import type { ShutdownStats } from '../types'
 import { getConfig, saveConfig } from './ipc'
 
 /**

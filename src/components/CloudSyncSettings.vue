@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CloudKnowledgeSource } from '../types/interfaces'
+import type { CloudKnowledgeSource } from '../types'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
 import { getConfig, saveConfig } from '../utils/ipc/'

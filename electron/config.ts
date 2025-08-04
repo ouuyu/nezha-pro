@@ -1,4 +1,4 @@
-import type { CloudKnowledgeSource } from '../src/types/interfaces'
+import type { CloudKnowledgeSource } from '../src/types'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { app } from 'electron'

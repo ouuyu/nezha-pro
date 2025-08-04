@@ -1,4 +1,4 @@
-import type { IpcOptions, IpcResult } from '../../types/interfaces'
+import type { IpcOptions, IpcResult } from '../../types'
 import { IpcBase } from './base'
 
 export class ConfigIpc extends IpcBase {

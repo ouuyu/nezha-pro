@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BackgroundConfig } from '../../types/interfaces'
+import type { BackgroundConfig } from '../../types'
 import { onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps<{ config: BackgroundConfig }>()

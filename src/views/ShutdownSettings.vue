@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ShutdownTime } from '../types/interfaces'
+import type { ShutdownTime } from '../types'
 import { Calendar, Check, Clock, Delete, Edit, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, onUnmounted, ref } from 'vue'

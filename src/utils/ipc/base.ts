@@ -1,4 +1,4 @@
-import type { IpcOptions, IpcResult } from '../../types/interfaces'
+import type { IpcOptions, IpcResult } from '../../types'
 import { ElMessage } from 'element-plus'
 
 function deepClone<T>(obj: T): T {

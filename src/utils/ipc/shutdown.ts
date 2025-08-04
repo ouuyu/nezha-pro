@@ -1,4 +1,4 @@
-import type { IpcOptions, IpcResult } from '../../types/interfaces'
+import type { IpcOptions, IpcResult } from '../../types'
 // src/ipc/shutdown-ipc.ts
 import { IpcBase } from './base'
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BackgroundConfig } from '../types/interfaces'
+import type { BackgroundConfig } from '../types'
 import { computed } from 'vue'
 
 import AuroraEffect from './effects/AuroraEffect.vue'
