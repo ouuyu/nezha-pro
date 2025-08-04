@@ -79,7 +79,7 @@ jobs:
         run: pnpm install
 
       - name: Build applications
-        run: pnpm run electron:build --mac --win
+        run: pnpm run electron:build --win
 
       - name: Upload macos artifact to Release
         if: needs.check-version.outputs.version_changed == 'true'
