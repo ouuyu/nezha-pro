@@ -6,6 +6,7 @@ import { startAutoSync, stopAutoSync } from './autoSync'
 import { ensureConfigFile } from './config'
 import { setupIpcHandlers } from './ipc'
 import { scheduleShutdowns } from './shutdown'
+import { setupUpdateHandlers } from './update'
 
 process.env.DIST = path.join(__dirname, '../dist')
 process.env.PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
@@ -47,12 +48,11 @@ app.on('window-all-closed', () => {
 
 app.whenReady().then(() => {
   ensureConfigFile()
+  setupUpdateHandlers() // Set up update handlers
 
   createWindow()
   setupIpcHandlers()
-
   scheduleShutdowns()
-  startAutoSync() // 启动自动同步
 })
 
 app.on('activate', () => {

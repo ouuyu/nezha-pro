@@ -27,6 +27,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'ShutdownConfirm',
     component: () => import('../views/ShutdownConfirm.vue'),
   },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('../views/About.vue'),
+  },
 ]
 
 const router = createRouter({

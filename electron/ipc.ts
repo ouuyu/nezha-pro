@@ -1,10 +1,10 @@
-import * as fs from 'node:fs'
 import process from 'node:process'
 import { app, ipcMain } from 'electron'
 import { restartAutoSync } from './autoSync'
 import { deleteAllCloudData, deleteCloudDataBySource, syncAllCloudSources, syncCloudKnowledgeSource } from './cloudSync'
 import { getConfig, getConfigPath, saveConfig } from './config'
 import { cancelShutdown, createShutdownWindow, executeSystemShutdown, scheduleShutdowns } from './shutdown'
+import { setupUpdateHandlers } from './update'
 
 // Set up IPC handlers
 export function setupIpcHandlers() {
@@ -51,87 +51,46 @@ export function setupIpcHandlers() {
     return await syncCloudKnowledgeSource(sourceConfig)
   })
 
-  // Handler for syncing all cloud knowledge sources
-  ipcMain.handle('sync-all-cloud-knowledge', async () => {
+  // Handler for syncing all cloud sources
+  ipcMain.handle('sync-all-cloud-sources', async () => {
     return await syncAllCloudSources()
   })
 
   // Handler for deleting cloud data by source
-  ipcMain.handle('delete-cloud-data-by-source', async (_event, sourceIds: string[]) => {
-    return deleteCloudDataBySource(sourceIds)
+  ipcMain.handle('delete-cloud-data-by-source', async (_event, sourceName: string[]) => {
+    return await deleteCloudDataBySource(sourceName)
   })
 
   // Handler for deleting all cloud data
   ipcMain.handle('delete-all-cloud-data', async () => {
-    return deleteAllCloudData()
+    return await deleteAllCloudData()
   })
 
-  // Handler for getting raw config file content (for developer mode)
-  ipcMain.handle('get-raw-config', () => {
-    try {
-      const configPath = getConfigPath()
-      if (fs.existsSync(configPath)) {
-        const rawContent = fs.readFileSync(configPath, 'utf8')
-        return {
-          success: true,
-          content: rawContent,
-          path: configPath,
-        }
-      }
-      else {
-        return {
-          success: false,
-          error: '配置文件不存在',
-        }
-      }
-    }
-    catch (error) {
-      console.error('Error reading raw config file:', error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : '读取配置文件失败',
-      }
-    }
+  // Handler for getting config path
+  ipcMain.handle('get-config-path', () => {
+    return getConfigPath()
   })
 
-  // Handler for saving raw config file content (for developer mode)
-  ipcMain.handle('save-raw-config', (_event, content: string) => {
-    try {
-      // Validate JSON format
-      JSON.parse(content)
+  // Handler for scheduling shutdowns
+  ipcMain.handle('schedule-shutdowns', () => {
+    return scheduleShutdowns()
+  })
 
-      const configPath = getConfigPath()
-      fs.writeFileSync(configPath, content, 'utf8')
-
-      return {
-        success: true,
-        message: '配置文件保存成功',
-      }
-    }
-    catch (error) {
-      console.error('Error saving raw config file:', error)
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : '保存配置文件失败',
-      }
-    }
+  // Handler for creating shutdown window
+  ipcMain.handle('create-shutdown-window', async (_event) => {
+    return await createShutdownWindow()
   })
 
   // Handler for executing system shutdown
-  ipcMain.handle('execute-shutdown', () => {
-    executeSystemShutdown()
-    return { success: true }
+  ipcMain.handle('execute-system-shutdown', () => {
+    return executeSystemShutdown()
   })
 
-  // Handler for canceling shutdown
+  // Handler for cancelling shutdown
   ipcMain.handle('cancel-shutdown', () => {
-    cancelShutdown()
-    return { success: true }
+    return cancelShutdown()
   })
 
-  // Handler for manually triggering shutdown confirmation window
-  ipcMain.handle('trigger-shutdown-window', () => {
-    createShutdownWindow()
-    return { success: true }
-  })
+  // Setup update handlers
+  setupUpdateHandlers()
 }
