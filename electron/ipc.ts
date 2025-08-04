@@ -43,6 +43,7 @@ export function setupIpcHandlers() {
       configPath: getConfigPath(),
       userDataPath: app.getPath('userData'),
       appPath: app.getAppPath(),
+      tempPath: app.getPath('temp'),
     }
   })
 

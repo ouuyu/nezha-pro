@@ -1,12 +1,11 @@
 import { exec } from 'node:child_process'
 import * as fs from 'node:fs'
-import * as https from 'node:https'
 import * as path from 'node:path'
+import axios from 'axios'
 import { app, ipcMain } from 'electron'
 
 // GitHub releases API URL
 const RELEASES_API_URL = 'https://api.github.com/repos/ouuyu/nezha-pro/releases/latest'
-const USER_AGENT = 'Nezha-App'
 
 export interface ReleaseInfo {
   tag_name: string
@@ -19,7 +18,6 @@ export interface ReleaseInfo {
 }
 
 export function setupUpdateHandlers() {
-  // Handler for checking updates
   ipcMain.handle('check-for-updates', async () => {
     try {
       const latestRelease = await getLatestRelease()
@@ -50,7 +48,6 @@ export function setupUpdateHandlers() {
     }
   })
 
-  // Handler for downloading and installing update
   ipcMain.handle('download-and-install-update', async (_event, downloadUrl: string) => {
     try {
       await downloadAndInstallUpdate(downloadUrl)
@@ -63,46 +60,22 @@ export function setupUpdateHandlers() {
   })
 }
 
-function getLatestRelease(): Promise<ReleaseInfo> {
-  return new Promise((resolve, reject) => {
-    const options = {
-      headers: {
-        'User-Agent': USER_AGENT,
-      },
-    }
-
-    https.get(RELEASES_API_URL, options, (res) => {
-      let data = ''
-
-      res.on('data', (chunk) => {
-        data += chunk
-      })
-
-      res.on('end', () => {
-        try {
-          const releaseInfo: ReleaseInfo = JSON.parse(data)
-          resolve(releaseInfo)
-        }
-        catch (error) {
-          reject(error)
-        }
-      })
-    }).on('error', (error) => {
-      reject(error)
-    })
+async function getLatestRelease(): Promise<ReleaseInfo> {
+  const { data } = await axios.get<ReleaseInfo>(RELEASES_API_URL, {
+    headers: {
+      'User-Agent': 'Nezha-App',
+    },
   })
+  return data
 }
 
 function isNewerVersion(latestVersion: string, currentVersion: string): boolean {
-  // Remove 'v' prefix if present
   const latest = latestVersion.replace(/^v/, '')
   const current = currentVersion.replace(/^v/, '')
 
-  // Split version numbers
   const latestParts = latest.split('.').map(Number)
   const currentParts = current.split('.').map(Number)
 
-  // Compare version parts
   for (let i = 0; i < Math.max(latestParts.length, currentParts.length); i++) {
     const latestNum = latestParts[i] || 0
     const currentNum = currentParts[i] || 0
@@ -118,37 +91,34 @@ function isNewerVersion(latestVersion: string, currentVersion: string): boolean 
   return false
 }
 
-function downloadAndInstallUpdate(downloadUrl: string): Promise<void> {
+async function downloadAndInstallUpdate(downloadUrl: string): Promise<void> {
+  const tempDir = app.getPath('temp')
+  const fileName = path.basename(downloadUrl)
+  const filePath = path.join(tempDir, fileName)
+
+  const writer = fs.createWriteStream(filePath)
+  const response = await axios({
+    url: downloadUrl,
+    method: 'GET',
+    responseType: 'stream',
+  })
+
+  response.data.pipe(writer)
+
   return new Promise((resolve, reject) => {
-    // Create temp directory for download
-    const tempDir = app.getPath('temp')
-    const fileName = path.basename(downloadUrl)
-    const filePath = path.join(tempDir, fileName)
-
-    const file = fs.createWriteStream(filePath)
-
-    https.get(downloadUrl, (res) => {
-      res.pipe(file)
-
-      file.on('finish', () => {
-        file.close()
-
-        // Execute the installer silently
-        exec(`"${filePath}" /S`, (error) => {
-          if (error) {
-            reject(error)
-          }
-          else {
-            resolve()
-          }
-        })
+    writer.on('finish', () => {
+      exec(`"${filePath}" /S`, (error) => {
+        if (error) {
+          reject(error)
+        }
+        else {
+          resolve()
+        }
       })
+    })
 
-      file.on('error', (error) => {
-        fs.unlink(filePath, () => {}) // Delete temp file
-        reject(error)
-      })
-    }).on('error', (error) => {
+    writer.on('error', (error) => {
+      fs.unlink(filePath, () => {})
       reject(error)
     })
   })

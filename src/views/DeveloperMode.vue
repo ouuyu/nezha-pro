@@ -29,6 +29,7 @@ const infoItems = computed(() => {
     { label: '时区', value: Intl.DateTimeFormat().resolvedOptions().timeZone },
     { label: '配置文件位置', value: info.configPath },
     { label: '用户数据目录', value: info.userDataPath },
+    { label: '临时文件目录', value: info.tempPath },
     { label: '应用程序路径', value: info.appPath },
   ]
 })
