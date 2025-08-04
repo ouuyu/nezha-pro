@@ -1,6 +1,6 @@
 {
   "name": "nezha",
-  "version": "0.0.0",
+  "version": "v0.0.0",
   "private": true,
   "main": "dist-electron/main.js",
   "scripts": {
