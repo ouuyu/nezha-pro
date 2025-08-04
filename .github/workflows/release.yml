@@ -58,7 +58,7 @@ jobs:
           prerelease: false
 
   build:
-    needs: [check-version, create-release]
+    needs: check-version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
