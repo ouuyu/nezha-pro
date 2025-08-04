@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version_changed: ${{ steps.check_version.outputs.changed }}
-      new_version: ${{ steps.check-version.outputs.new_version }}
+      new_version: ${{ steps.check_version.outputs.new_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
           prerelease: false
 
   build:
-    needs: check-version
+    needs: [check-version, create-release]
     runs-on: windows-latest
     steps:
       - name: Checkout code
