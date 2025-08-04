@@ -1,8 +1,8 @@
+import { exec } from 'node:child_process'
+import * as fs from 'node:fs'
+import * as https from 'node:https'
+import * as path from 'node:path'
 import { app, ipcMain } from 'electron'
-import { exec } from 'child_process'
-import * as https from 'https'
-import * as fs from 'fs'
-import * as path from 'path'
 
 // GitHub releases API URL
 const RELEASES_API_URL = 'https://api.github.com/repos/ouuyu/nezha-pro/releases/latest'
@@ -24,26 +24,28 @@ export function setupUpdateHandlers() {
     try {
       const latestRelease = await getLatestRelease()
       const currentVersion = app.getVersion()
-      
+
       if (isNewerVersion(latestRelease.tag_name, `v${currentVersion}`)) {
         return {
           hasUpdate: true,
           currentVersion,
           latestVersion: latestRelease.tag_name,
-          releaseInfo: latestRelease
+          releaseInfo: latestRelease,
         }
-      } else {
+      }
+      else {
         return {
           hasUpdate: false,
           currentVersion,
-          latestVersion: latestRelease.tag_name
+          latestVersion: latestRelease.tag_name,
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error checking for updates:', error)
       return {
         hasUpdate: false,
-        error: error.message
+        error: error.message,
       }
     }
   })
@@ -53,7 +55,8 @@ export function setupUpdateHandlers() {
     try {
       await downloadAndInstallUpdate(downloadUrl)
       return { success: true }
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error downloading/installing update:', error)
       return { success: false, error: error.message }
     }
@@ -64,8 +67,8 @@ function getLatestRelease(): Promise<ReleaseInfo> {
   return new Promise((resolve, reject) => {
     const options = {
       headers: {
-        'User-Agent': USER_AGENT
-      }
+        'User-Agent': USER_AGENT,
+      },
     }
 
     https.get(RELEASES_API_URL, options, (res) => {
@@ -79,7 +82,8 @@ function getLatestRelease(): Promise<ReleaseInfo> {
         try {
           const releaseInfo: ReleaseInfo = JSON.parse(data)
           resolve(releaseInfo)
-        } catch (error) {
+        }
+        catch (error) {
           reject(error)
         }
       })
@@ -105,7 +109,8 @@ function isNewerVersion(latestVersion: string, currentVersion: string): boolean 
 
     if (latestNum > currentNum) {
       return true
-    } else if (latestNum < currentNum) {
+    }
+    else if (latestNum < currentNum) {
       return false
     }
   }
@@ -132,7 +137,8 @@ function downloadAndInstallUpdate(downloadUrl: string): Promise<void> {
         exec(`"${filePath}" /S`, (error) => {
           if (error) {
             reject(error)
-          } else {
+          }
+          else {
             resolve()
           }
         })

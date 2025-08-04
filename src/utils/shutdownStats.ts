@@ -16,7 +16,7 @@ export async function updateShutdownStats(type: 'scheduled' | 'canceled' | 'exec
     const currentStats: ShutdownStats = config.shutdownStats || {
       totalScheduled: 0,
       totalCanceled: 0,
-      lastShutdown: '从未'
+      lastShutdown: '从未',
     }
 
     // 更新统计数据
@@ -35,12 +35,13 @@ export async function updateShutdownStats(type: 'scheduled' | 'canceled' | 'exec
     // 保存更新后的配置
     const newConfig = {
       ...config,
-      shutdownStats: currentStats
+      shutdownStats: currentStats,
     }
 
     const saveResult = await saveConfig(newConfig, { silent: true })
     return saveResult.success
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to update shutdown stats:', error)
     return false
   }
@@ -58,9 +59,10 @@ export async function getShutdownStats(): Promise<ShutdownStats | null> {
     return {
       totalScheduled: 0,
       totalCanceled: 0,
-      lastShutdown: '从未'
+      lastShutdown: '从未',
     }
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to get shutdown stats:', error)
     return null
   }
@@ -82,13 +84,14 @@ export async function resetShutdownStats(): Promise<boolean> {
       shutdownStats: {
         totalScheduled: 0,
         totalCanceled: 0,
-        lastShutdown: '从未'
-      }
+        lastShutdown: '从未',
+      },
     }
 
     const saveResult = await saveConfig(newConfig, { silent: true })
     return saveResult.success
-  } catch (error) {
+  }
+  catch (error) {
     console.error('Failed to reset shutdown stats:', error)
     return false
   }

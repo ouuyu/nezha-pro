@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { Document, Promotion } from '@element-plus/icons-vue'
-import { computed } from 'vue'
-import pkg from '../../package.json'
 
 const githubUrl = 'https://github.com/ouuyu/nezha'
 </script>

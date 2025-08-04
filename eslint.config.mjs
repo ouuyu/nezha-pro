@@ -5,5 +5,5 @@ export default antfu({
   vue: true,
   rules: {
     'no-console': 'off',
-  }
+  },
 })

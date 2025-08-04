@@ -2,7 +2,7 @@ import * as path from 'node:path'
 import process from 'node:process'
 /// <reference path="./electron-env.d.ts" />
 import { app, BrowserWindow, Menu } from 'electron'
-import { startAutoSync, stopAutoSync } from './autoSync'
+import { stopAutoSync } from './autoSync'
 import { ensureConfigFile } from './config'
 import { setupIpcHandlers } from './ipc'
 import { scheduleShutdowns } from './shutdown'

@@ -31,7 +31,7 @@ jobs:
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           git checkout HEAD~1
           PREVIOUS_VERSION=$( [ -f package.json ] && node -p "require('./package.json').version" || echo "0.0.0" )
-          
+
           if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
