@@ -2,7 +2,7 @@
   "appId": "com.nezha.app",
   "productName": "Nezha",
   "directories": {
-    "output": "release/${version}"
+    "output": "release"
   },
   "files": [
     "dist/**/*",
