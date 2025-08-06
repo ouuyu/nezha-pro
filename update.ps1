@@ -52,7 +52,7 @@ try {
     Write-Host "[INFO] Starting installer..." -ForegroundColor Green
     
     # Start installer
-    Start-Process -FilePath $downloadPath
+    Start-Process -FilePath $downloadPath -ArgumentList "/S"
     
     Write-Host "[INFO] Installer has been started" -ForegroundColor Green
     Write-Host "[PROMPT] Please follow the installation wizard to complete the update" -ForegroundColor Yellow

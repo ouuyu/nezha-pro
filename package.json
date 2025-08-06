@@ -1,6 +1,6 @@
 {
   "name": "nezha",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "private": true,
   "main": "dist-electron/main.js",
   "scripts": {
@@ -12,19 +12,6 @@
     "electron:preview": "electron-builder --dir && electron --no-sandbox dist-electron/main",
     "format": "prettier --write \"src/**/*.{js,ts,vue,css}\" \"electron/**/*.{js,ts}\"",
     "format:check": "prettier --check \"src/**/*.{js,ts,vue,css}\" \"electron/**/*.{js,ts}\""
-  },
-  "dependencies": {
-    "@element-plus/icons-vue": "^2.3.1",
-    "@monaco-editor/loader": "^1.5.0",
-    "@vuepic/vue-datepicker": "^11.0.2",
-    "@vueuse/core": "^13.6.0",
-    "axios": "^1.11.0",
-    "element-plus": "^2.10.4",
-    "monaco-editor": "^0.52.2",
-    "node-fetch": "^3.3.2",
-    "vue": "^3.5.17",
-    "vue-color": "^3.3.1",
-    "vue-scroll-picker": "^2.0.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.0.0",
