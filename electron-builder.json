@@ -8,6 +8,9 @@
     "dist/**/*",
     "dist-electron/**/*"
   ],
+  "extraFiles": [
+    "update.ps1"
+  ],
   "mac": {
     "artifactName": "${productName}_${version}.${ext}",
     "target": [
