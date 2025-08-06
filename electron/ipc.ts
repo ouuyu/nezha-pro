@@ -1,10 +1,11 @@
+import { spawn } from 'node:child_process'
+import * as path from 'node:path'
 import process from 'node:process'
 import { app, ipcMain } from 'electron'
 import { restartAutoSync } from './autoSync'
 import { deleteAllCloudData, deleteCloudDataBySource, syncAllCloudSources, syncCloudKnowledgeSource } from './cloudSync'
 import { getConfig, getConfigPath, saveConfig } from './config'
 import { cancelShutdown, createShutdownWindow, executeSystemShutdown, scheduleShutdowns } from './shutdown'
-import { setupUpdateHandlers } from './update'
 
 // Set up IPC handlers
 export function setupIpcHandlers() {
@@ -92,6 +93,20 @@ export function setupIpcHandlers() {
     return cancelShutdown()
   })
 
-  // Setup update handlers
-  setupUpdateHandlers()
+  // Handler for running update
+  ipcMain.handle('run-update', () => {
+    try {
+      const updatePs1Path = path.join(process.cwd(), 'update.ps1')
+      const child = spawn('cmd.exe', ['/c', 'start', 'powershell', '-ExecutionPolicy', 'Bypass', '-File', updatePs1Path], {
+        detached: true,
+        stdio: 'ignore',
+      })
+      child.unref()
+      return { success: true, message: '更新程序已启动' }
+    }
+    catch (error: any) {
+      console.error('Failed to run update:', error)
+      return { success: false, error: error.message }
+    }
+  })
 }

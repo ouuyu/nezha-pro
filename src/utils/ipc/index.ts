@@ -4,10 +4,12 @@ import { ConfigIpc } from './config'
 import { ShutdownIpc } from './shutdown'
 import { UpdateIpc } from './update'
 
+
 const ipcBase = new IpcBase()
 const configIpc = new ConfigIpc()
 const shutdownIpc = new ShutdownIpc()
 const updateIpc = new UpdateIpc()
+
 
 export {
   configIpc,
@@ -27,5 +29,6 @@ export const executeShutdown = shutdownIpc.executeShutdown.bind(shutdownIpc)
 export const cancelShutdown = shutdownIpc.cancelShutdown.bind(shutdownIpc)
 export const triggerShutdownWindow = shutdownIpc.triggerShutdownWindow.bind(shutdownIpc)
 
-export const checkForUpdates = updateIpc.checkForUpdates.bind(updateIpc)
-export const downloadAndInstallUpdate = updateIpc.downloadAndInstallUpdate.bind(updateIpc)
+export const runUpdate = updateIpc.runUpdate.bind(updateIpc)
+
+

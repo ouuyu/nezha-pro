@@ -62,15 +62,11 @@ export interface IpcInvokeMap {
   'cancel-shutdown': () => Promise<void>
 
   // 更新相关
-  'check-for-updates': () => Promise<{
-    hasUpdate: boolean
-    currentVersion: string
-    latestVersion: string
-    releaseInfo?: ReleaseInfo
-    error?: string
-  }>
-  'download-and-install-update': (downloadUrl: string) => Promise<{
+  'run-update': () => Promise<{
     success: boolean
+    message?: string
     error?: string
   }>
+
+
 }

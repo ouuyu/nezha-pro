@@ -2,7 +2,7 @@
 import { Clock, Document, HomeFilled, InfoFilled, Tools } from '@element-plus/icons-vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import UpdateNotification from './components/UpdateNotification.vue'
+
 import ShutdownConfirm from './views/ShutdownConfirm.vue'
 
 const route = useRoute()
@@ -10,8 +10,7 @@ const router = useRouter()
 const isCollapse = ref(false)
 const isMobileScreen = ref(false)
 const isRouterReady = ref(false)
-const showUpdateDialog = ref(false)
-const updateNotificationRef = ref()
+
 
 const isCountdownPage = computed(() => route.path === '/shutdown-confirm')
 
@@ -61,12 +60,7 @@ function checkScreenSize() {
   isCollapse.value = isMobileScreen.value
 }
 
-// Function to manually check for updates
-async function checkForUpdates() {
-  if (updateNotificationRef.value) {
-    await updateNotificationRef.value.checkForUpdates()
-  }
-}
+
 
 onMounted(() => {
   checkScreenSize()
@@ -75,9 +69,7 @@ onMounted(() => {
     isRouterReady.value = true
   })
 
-  setTimeout(() => {
-    checkForUpdates()
-  }, 3000)
+
 })
 
 onUnmounted(() => {
@@ -147,8 +139,7 @@ onUnmounted(() => {
       </el-container>
     </div>
 
-    <!-- Update Notification Dialog -->
-    <UpdateNotification ref="updateNotificationRef" v-model:visible="showUpdateDialog" />
+
   </div>
 </template>
 

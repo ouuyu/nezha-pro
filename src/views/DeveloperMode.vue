@@ -3,7 +3,7 @@ import { InfoFilled, Refresh } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
 import MonacoEditor from '../components/MonacoEditor.vue'
-import { getDeveloperInfo, getRawConfig, saveRawConfig, triggerShutdownWindow } from '../utils/ipc/'
+import { getDeveloperInfo, getRawConfig, runUpdate, saveRawConfig, triggerShutdownWindow } from '../utils/ipc/'
 
 const loading = ref(false)
 const developerInfo = ref<any>({})
@@ -95,6 +95,16 @@ function handleTriggerShutdownWindow() {
   triggerShutdownWindow({ silent: true })
 }
 
+// 运行更新程序
+async function handleRunUpdate() {
+  const result = await runUpdate()
+  if (result.success) {
+    ElMessage.success(result.data?.message || '更新程序已启动')
+  } else {
+    ElMessage.error(result.error || '启动更新程序失败')
+  }
+}
+
 onMounted(loadDeveloperInfo)
 </script>
 
@@ -137,6 +147,9 @@ onMounted(loadDeveloperInfo)
       </el-button>
       <el-button type="warning" @click="handleTriggerShutdownWindow">
         测试关机倒计时
+      </el-button>
+      <el-button type="success" @click="handleRunUpdate">
+        检查更新
       </el-button>
     </div>
 
